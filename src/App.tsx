@@ -6,6 +6,7 @@ import { WeekendNotice } from './components/WeekendNotice';
 import { TrainList } from './components/TrainList';
 import { AlertList } from './components/AlertList';
 import { useAlerts } from './hooks/useAlerts';
+import { useLocalStorage } from './hooks/useLocalStorage';
 import { timeToMinutes, getCurrentMinutes, isWeekday } from './utils/time';
 import type { ScheduleData, NextTrain, DirectionTrains } from './types';
 import scheduleData from './schedule-data.json';
@@ -13,32 +14,6 @@ import scheduleData from './schedule-data.json';
 const typedScheduleData = scheduleData as ScheduleData;
 
 const MINUTES_IN_DAY = 24 * 60;
-const STORAGE_KEY = 'sounder-train-state';
-
-interface StoredState {
-  route: string;
-  stop: string;
-}
-
-function loadState(): StoredState {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-  return { route: 'n-line', stop: '' };
-}
-
-function saveState(route: string, stop: string): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ route, stop }));
-  } catch {
-    // Ignore storage errors
-  }
-}
 
 function getActiveServices(data: ScheduleData): Set<string> {
   const today = new Date();
@@ -153,9 +128,8 @@ function getTrainsByDirection(data: ScheduleData, route: string, stopId: string)
 }
 
 export function App() {
-  const [initialState] = useState(loadState);
-  const [currentRoute, setCurrentRoute] = useState(initialState.route);
-  const [currentStop, setCurrentStop] = useState(initialState.stop);
+  const [currentRoute, setCurrentRoute] = useLocalStorage('sounder-route', 'n-line');
+  const [currentStop, setCurrentStop] = useLocalStorage('sounder-stop', '');
   const [trainsByDirection, setTrainsByDirection] = useState<DirectionTrains[]>([]);
 
   const routeId = typedScheduleData.schedule[currentRoute]?.routeId || '';
@@ -165,16 +139,12 @@ export function App() {
 
   useEffect(() => {
     if (stops.length > 0 && !currentStop) {
-      const defaultStop = stops[0].stopId;
-      setCurrentStop(defaultStop);
-      saveState(currentRoute, defaultStop);
+      setCurrentStop(stops[0].stopId);
     } else if (currentStop && stops.length > 0 && !stops.some(s => s.stopId === currentStop)) {
       // If stored stop isn't valid for this route, reset to first stop
-      const defaultStop = stops[0].stopId;
-      setCurrentStop(defaultStop);
-      saveState(currentRoute, defaultStop);
+      setCurrentStop(stops[0].stopId);
     }
-  }, [stops, currentStop, currentRoute]);
+  }, [stops, currentStop, setCurrentStop]);
 
   const updateTrains = useCallback(() => {
     if (currentStop) {
@@ -191,14 +161,7 @@ export function App() {
   const handleRouteChange = (route: string) => {
     setCurrentRoute(route);
     const newStops = typedScheduleData.schedule[route]?.stops || [];
-    const newStop = newStops.length > 0 ? newStops[0].stopId : '';
-    setCurrentStop(newStop);
-    saveState(route, newStop);
-  };
-
-  const handleStopChange = (stop: string) => {
-    setCurrentStop(stop);
-    saveState(currentRoute, stop);
+    setCurrentStop(newStops.length > 0 ? newStops[0].stopId : '');
   };
 
   const weekend = !isWeekday();
@@ -215,7 +178,7 @@ export function App() {
         <StopSelect
           stops={stops}
           currentStop={currentStop}
-          onStopChange={handleStopChange}
+          onStopChange={setCurrentStop}
         />
         <WeekendNotice visible={weekend} />
         <TrainList
