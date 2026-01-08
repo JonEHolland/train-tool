@@ -1,0 +1,27 @@
+{
+  "name": "sounder-train-pwa",
+  "version": "1.0.0",
+  "description": "Sound Transit Sounder Train schedule and alerts PWA",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && tsx scripts/update-sw-hash.ts",
+    "preview": "vite preview",
+    "fetch-data": "tsx scripts/fetch-gtfs.ts",
+    "publish": "npm run fetch-data && npm run build"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jszip": "^3.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vite-plugin-singlefile": "^2.0.3"
+  }
+}

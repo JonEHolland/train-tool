@@ -1,0 +1,40 @@
+import type { AlertEntity } from '../types';
+
+interface AlertListProps {
+  alerts: AlertEntity[];
+  loading: boolean;
+  error: string | null;
+}
+
+export function AlertList({ alerts, loading, error }: AlertListProps) {
+  let content: React.ReactNode;
+
+  if (loading) {
+    content = <div className="loading">Loading alerts...</div>;
+  } else if (error) {
+    content = <div className="error">{error}</div>;
+  } else if (alerts.length === 0) {
+    content = <div className="no-service">No active alerts</div>;
+  } else {
+    content = alerts.map(entity => {
+      const alert = entity.alert;
+      const header = alert?.header_text?.translation?.[0]?.text || 'Alert';
+      const desc = alert?.description_text?.translation?.[0]?.text || '';
+      const truncatedDesc = desc.length > 200 ? `${desc.slice(0, 200)}...` : desc;
+
+      return (
+        <div key={entity.id} className="alert-item">
+          <div className="alert-header">{header}</div>
+          <div className="alert-desc">{truncatedDesc}</div>
+        </div>
+      );
+    });
+  }
+
+  return (
+    <div className="card">
+      <div className="card-header">Service Alerts</div>
+      <div className="card-body">{content}</div>
+    </div>
+  );
+}
