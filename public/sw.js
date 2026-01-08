@@ -29,7 +29,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Always fetch alerts from network (direct or via CORS proxy)
-  if (url.href.includes('s3.amazonaws.com') || url.href.includes('corsproxy.io')) {
+  if (url.href.includes('s3.amazonaws.com') || url.href.includes('allorigins.win')) {
     event.respondWith(fetch(event.request));
     return;
   }
