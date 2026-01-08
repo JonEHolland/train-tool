@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { AlertEntity, AlertsResponse } from '../types';
 
-const ALERTS_URL = 'https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json';
+const ALERTS_SOURCE = 'https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json';
+const CORS_PROXY = 'https://corsproxy.io/?';
+const ALERTS_URL = CORS_PROXY + encodeURIComponent(ALERTS_SOURCE);
 
 interface UseAlertsResult {
   alerts: AlertEntity[];

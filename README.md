@@ -98,6 +98,16 @@ Run `npm run fetch-data` to update schedule data.
 3. **Train Display** - Shows next departures grouped by destination terminus, with countdown timers that refresh every 60 seconds
 4. **Alerts** - Fetches service alerts every 5 minutes, filtered by selected route
 
+## Deployment
+
+This app deploys automatically to GitHub Pages on every push to `main`. The workflow:
+
+1. Fetches latest GTFS schedule data from Sound Transit
+2. Builds the single-file PWA
+3. Deploys to GitHub Pages
+
+Live at: https://joneholland.github.io/train-tool/
+
 ## License
 
 MIT
