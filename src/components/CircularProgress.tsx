@@ -1,3 +1,5 @@
+import { URGENCY_THRESHOLDS, PROGRESS_MAX_MINUTES } from '../utils/constants';
+
 interface CircularProgressProps {
   /** Progress value from 0 to 1 (1 = full, 0 = empty) */
   progress: number;
@@ -103,19 +105,16 @@ export function CircularProgress({
 
 /** Helper to calculate progress based on minutes away */
 export function calculateProgress(minutesAway: number): number {
-  // Max time for full ring (60 minutes)
-  const maxMinutes = 60;
-
-  if (minutesAway >= maxMinutes) return 1;
+  if (minutesAway >= PROGRESS_MAX_MINUTES) return 1;
   if (minutesAway <= 0) return 0;
 
-  return minutesAway / maxMinutes;
+  return minutesAway / PROGRESS_MAX_MINUTES;
 }
 
 /** Helper to get color based on urgency */
 export function getUrgencyColor(minutesAway: number): string {
-  if (minutesAway <= 2) return 'var(--color-status-danger)';
-  if (minutesAway <= 5) return 'var(--color-status-warning)';
-  if (minutesAway <= 15) return 'var(--color-accent-secondary)';
+  if (minutesAway <= URGENCY_THRESHOLDS.DANGER) return 'var(--color-status-danger)';
+  if (minutesAway <= URGENCY_THRESHOLDS.WARNING) return 'var(--color-status-warning)';
+  if (minutesAway <= URGENCY_THRESHOLDS.COMFORTABLE) return 'var(--color-accent-secondary)';
   return 'var(--color-accent-primary)';
 }

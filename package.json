@@ -8,20 +8,31 @@
     "build": "tsc -b && vite build && tsx scripts/update-sw-hash.ts",
     "preview": "vite preview",
     "fetch-data": "tsx scripts/fetch-gtfs.ts",
-    "publish": "npm run fetch-data && npm run build"
+    "publish": "npm run fetch-data && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^27.4.0",
     "jszip": "^3.10.1",
     "tsx": "^4.19.2",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
-    "vite-plugin-singlefile": "^2.0.3"
+    "vite-plugin-singlefile": "^2.0.3",
+    "vitest": "^4.0.17"
   }
 }

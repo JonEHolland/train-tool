@@ -86,49 +86,6 @@ body {
 }
 
 /* ==========================================================================
-   Header
-   ========================================================================== */
-
-header {
-  background: var(--color-surface-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: var(--color-text-primary);
-  padding: var(--spacing-5) var(--spacing-4) var(--spacing-4) var(--spacing-4);
-  text-align: center;
-  box-shadow: var(--shadow-md);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-tertiary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: var(--spacing-2);
-  filter: drop-shadow(0 0 20px rgba(95, 234, 212, 0.3));
-  position: relative;
-  display: inline-block;
-}
-
-header h1::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 0%, var(--color-accent-primary) 50%, transparent 100%);
-  border-radius: var(--radius-full);
-}
-
-/* ==========================================================================
    Glassmorphic Cards
    ========================================================================== */
 
@@ -768,37 +725,6 @@ header h1::after {
 }
 
 /* ==========================================================================
-   Animations
-   ========================================================================== */
-
-@keyframes pulse-warning {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255, 184, 77, 0);
-  }
-  50% {
-    box-shadow: 0 0 20px 5px rgba(255, 184, 77, 0.3);
-  }
-}
-
-@keyframes pulse-danger {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
-  }
-  50% {
-    box-shadow: 0 0 20px 5px rgba(255, 107, 107, 0.4);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-/* ==========================================================================
    Responsive Design
    ========================================================================== */
 
@@ -809,10 +735,6 @@ header h1::after {
 
   .update-banner {
     margin: var(--spacing-4) var(--spacing-3);
-  }
-
-  .train-time .time {
-    font-size: 1.5rem;
   }
 }
 
@@ -826,17 +748,3 @@ header h1::after {
   }
 }
 
-/* ==========================================================================
-   Utility Classes
-   ========================================================================== */
-
-.glass {
-  background: var(--color-surface-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-surface-glass-border);
-}
-
-.gradient-accent {
-  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
-}
