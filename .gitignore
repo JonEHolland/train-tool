@@ -2,3 +2,7 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# Claude Code plan files
+.claude/
+*_PLAN.md
