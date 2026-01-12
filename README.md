@@ -1,112 +1,161 @@
-# Sounder Train PWA
+# Sounder Train Schedule
 
-A lightweight Progressive Web Application for tracking Sound Transit Sounder train schedules in the Seattle/Puget Sound region.
+A fast, beautiful Progressive Web App for Seattle-area commuters to track Sound Transit Sounder train departures in real time.
+
+![Sounder Train Schedule App](docs/screenshots/hero.png)
+
+## Why Use This App?
+
+Sounder Train Schedule gives you exactly what you need to catch your train - nothing more, nothing less. See your next departure at a glance with a prominent countdown timer, check service alerts, and never miss a train again.
+
+**Live App:** [joneholland.github.io/train-tool](https://joneholland.github.io/train-tool/)
 
 ## Features
 
-- **Real-time departures** - View the next 3 trains per direction with countdown timers
-- **Two routes** - N-Line (Everett-Seattle) and S-Line (Seattle-Tacoma)
-- **Service alerts** - Live alerts from Sound Transit's GTFS Realtime feeds
-- **Offline support** - Works without internet via Service Worker caching
-- **Installable** - Add to home screen on iOS/Android as a native-like app
-- **Single-file build** - Entire app compiles to one ~205KB HTML file
+### Real-Time Countdown
 
-## Tech Stack
+The circular progress ring shows exactly how long until your next train. The countdown changes color based on urgency:
 
-- React 18 + TypeScript
-- Vite 6 with single-file output
-- GTFS (General Transit Feed Specification) data
-- PWA with Service Worker
+- **Red (2 min or less)** - Time to run!
+- **Orange (3-5 min)** - Better hurry
+- **Teal (6-15 min)** - Comfortable
+- **Cyan (15+ min)** - Plenty of time
 
-## Getting Started
+![Urgent departure warning](docs/screenshots/urgent-departure.png)
+
+### Two Routes, All Stations
+
+Choose between the **N Line** (Everett - Seattle) and **S Line** (Seattle - Tacoma/Lakewood). Select your departure station from the dropdown to see trains headed to all destinations from that stop.
+
+When multiple destinations are available, tabs let you quickly switch between them (e.g., Tacoma vs. Lakewood on the S Line).
+
+### Service Alerts
+
+Live service alerts from Sound Transit appear automatically when there are delays, schedule changes, or other disruptions affecting your route.
+
+### Works Offline
+
+As a Progressive Web App, Sounder Train Schedule works even without an internet connection. Schedule data is cached locally, so you can check train times in tunnels, underground stations, or anywhere with spotty reception.
+
+### Install on Your Phone
+
+Add the app to your home screen for instant access:
+
+**iOS:** Tap the Share button in Safari, then "Add to Home Screen"
+
+**Android:** Tap the menu button in Chrome, then "Add to Home screen" or "Install app"
+
+## For Developers
 
 ### Prerequisites
 
 - Node.js 18+
 - npm
 
-### Installation
+### Getting Started
 
 ```bash
+# Clone the repository
+git clone https://github.com/JonEHolland/train-tool.git
+cd train-tool
+
+# Install dependencies
 npm install
-```
 
-### Development
-
-```bash
+# Start development server
 npm run dev
 ```
 
-Opens development server with hot module replacement at `http://localhost:5173`.
+The app will be available at `http://localhost:5173`.
 
-### Build
+### Building
 
 ```bash
+# Build for production
 npm run build
+
+# Fetch latest schedule data and build
+npm run publish
+
+# Preview production build
+npm run preview
 ```
 
-Compiles TypeScript, bundles with Vite, and updates Service Worker cache hash.
+The build produces a single HTML file (~205KB) containing all code, styles, and schedule data.
 
-### Full Publish
+### Testing
 
 ```bash
-npm run publish
+# Run unit tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run end-to-end tests
+npm run test:e2e
 ```
 
-Fetches latest GTFS data from Sound Transit and builds the app.
-
-## Project Structure
+### Project Structure
 
 ```
 src/
 ├── App.tsx              # Main component and schedule logic
 ├── schedule-data.json   # Processed GTFS schedule data
 ├── components/          # React UI components
-│   ├── Header.tsx
-│   ├── RouteSelect.tsx
-│   ├── StopSelect.tsx
-│   ├── TrainList.tsx
-│   ├── AlertList.tsx
+│   ├── AlertList.tsx    # Service alerts display
+│   ├── CircularProgress.tsx  # Countdown ring
+│   ├── RouteSelect.tsx  # N/S Line toggle
+│   ├── StopSelect.tsx   # Station dropdown
+│   ├── TrainList.tsx    # Main train display
 │   └── WeekendNotice.tsx
-├── hooks/
-│   └── useAlerts.ts     # Alert fetching hook
+├── hooks/               # Custom React hooks
+│   ├── useAlerts.ts     # Alert fetching
+│   └── useLocalStorage.ts
 ├── utils/
-│   └── time.ts          # Time formatting utilities
+│   ├── time.ts          # Time formatting
+│   └── constants.ts     # Urgency thresholds
 └── types.ts             # TypeScript interfaces
 
 scripts/
-├── fetch-gtfs.ts        # Downloads & processes GTFS data
-└── update-sw-hash.ts    # Updates SW cache version
+├── fetch-gtfs.ts        # Downloads GTFS data from Sound Transit
+└── update-sw-hash.ts    # Updates Service Worker cache version
 
 public/
 ├── manifest.json        # PWA manifest
-└── sw.js                # Service Worker
+└── sw.js               # Service Worker for offline support
 ```
 
-## Data Source
+### Data Sources
 
-Schedule data is sourced from Sound Transit's GTFS feed:
-- URL: `https://gtfs.sound.obaweb.org/prod/40_gtfs.zip`
-- Service alerts: `https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json`
+Schedule data comes from Sound Transit's official GTFS feed:
+- **Schedule:** `https://gtfs.sound.obaweb.org/prod/40_gtfs.zip`
+- **Service Alerts:** `https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json`
 
-Run `npm run fetch-data` to update schedule data.
+To update schedule data:
 
-## How It Works
+```bash
+npm run fetch-data
+```
 
-1. **Schedule Processing** - The `fetch-gtfs.ts` script downloads and parses GTFS data, filtering for Sounder routes and building a compact JSON schedule
-2. **Service Calculation** - The app determines active services based on calendar data, including weekday/weekend rules and holiday exceptions
-3. **Train Display** - Shows next departures grouped by destination terminus, with countdown timers that refresh every 60 seconds
-4. **Alerts** - Fetches service alerts every 5 minutes, filtered by selected route
+### Tech Stack
+
+- **React 18** with TypeScript for the UI
+- **Vite 6** with single-file output for fast builds
+- **GTFS** (General Transit Feed Specification) for schedule data
+- **Service Worker** for offline support and PWA capabilities
 
 ## Deployment
 
-This app deploys automatically to GitHub Pages on every push to `main`. The workflow:
+The app automatically deploys to GitHub Pages when changes are pushed to `main`. The deployment workflow:
 
-1. Fetches latest GTFS schedule data from Sound Transit
+1. Fetches the latest GTFS schedule data
 2. Builds the single-file PWA
 3. Deploys to GitHub Pages
 
-Live at: https://joneholland.github.io/train-tool/
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## License
 
