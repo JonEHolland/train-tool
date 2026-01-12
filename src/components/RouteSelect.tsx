@@ -7,18 +7,34 @@ interface RouteSelectProps {
 }
 
 export function RouteSelect({ scheduleData, currentRoute, onRouteChange }: RouteSelectProps) {
+  const routes = Object.entries(scheduleData.schedule);
+
+  // Parse route name into title and subtitle
+  const parseRouteName = (name: string) => {
+    const match = name.match(/^(.+?)\s*\((.+)\)$/);
+    if (match) {
+      return { title: match[1], subtitle: match[2] };
+    }
+    return { title: name, subtitle: '' };
+  };
+
   return (
     <div className="route-select">
-      <select
-        value={currentRoute}
-        onChange={(e) => onRouteChange(e.target.value)}
-      >
-        {Object.entries(scheduleData.schedule).map(([key, route]) => (
-          <option key={key} value={key}>
-            {route.name}
-          </option>
-        ))}
-      </select>
+      <div className="segmented-control">
+        {routes.map(([key, route]) => {
+          const { title, subtitle } = parseRouteName(route.name);
+          return (
+            <button
+              key={key}
+              className={`segment ${currentRoute === key ? 'active' : ''}`}
+              onClick={() => onRouteChange(key)}
+            >
+              <span className="segment-title">{title}</span>
+              {subtitle && <span className="segment-subtitle">{subtitle}</span>}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

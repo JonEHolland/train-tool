@@ -11,9 +11,11 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop }: TrainListPr
   if (isWeekend) {
     return (
       <div className="card">
-        <div className="card-header">Next Trains</div>
         <div className="card-body">
-          <div className="no-service">No service today</div>
+          <div className="no-service">
+            <div className="no-service-message">No service today</div>
+            <div className="no-service-subtitle">Sounder trains don't run on weekends</div>
+          </div>
         </div>
       </div>
     );
@@ -22,9 +24,11 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop }: TrainListPr
   if (!hasStop) {
     return (
       <div className="card">
-        <div className="card-header">Next Trains</div>
         <div className="card-body">
-          <div className="no-service">Select a station</div>
+          <div className="no-service">
+            <div className="no-service-message">Select a station</div>
+            <div className="no-service-subtitle">Choose your departure stop above</div>
+          </div>
         </div>
       </div>
     );
@@ -33,40 +37,79 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop }: TrainListPr
   if (trainsByDirection.length === 0) {
     return (
       <div className="card">
-        <div className="card-header">Next Trains</div>
         <div className="card-body">
-          <div className="no-service">No trains available</div>
+          <div className="no-service">
+            <div className="no-service-message">No trains available</div>
+            <div className="no-service-subtitle">Check back later for upcoming departures</div>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Combine all directions into one card
   return (
-    <>
-      {trainsByDirection.map((direction) => (
-        <div key={direction.directionName} className="card">
-          <div className="card-header">To {direction.directionName}</div>
-          <div className="card-body">
-            {direction.trains.map((train, index) => {
-              const countdownClass = !train.isTomorrow && train.minutesAway < 15 ? 'soon' : '';
-              const countdownText = train.isTomorrow
-                ? `tomorrow`
-                : formatCountdown(train.minutesAway);
+    <div className="card train-card">
+      <div className="card-body">
+        {trainsByDirection.map((direction, directionIndex) => {
+          const [firstTrain, ...otherTrains] = direction.trains;
 
-              return (
-                <div key={index} className="train-item">
-                  <div className="train-time-main">
-                    <div className="time">{formatTime(train.time)}</div>
+          // Determine urgency for first train - much more conservative
+          let urgencyClass = '';
+          if (!firstTrain.isTomorrow) {
+            if (firstTrain.minutesAway <= 2) {
+              urgencyClass = 'urgent';
+            } else if (firstTrain.minutesAway <= 5) {
+              urgencyClass = 'soon';
+            }
+          }
+
+          const firstCountdown = firstTrain.isTomorrow
+            ? 'Tomorrow'
+            : formatCountdown(firstTrain.minutesAway);
+
+          return (
+            <div key={direction.directionName} className="train-direction-section">
+              {/* Direction header */}
+              <div className="train-direction-header">To {direction.directionName}</div>
+
+              {/* Hero: Next Train - centered */}
+              <div className={`train-hero ${urgencyClass}`}>
+                <div className="train-hero-countdown">{firstCountdown}</div>
+                <div className="train-hero-time">{formatTime(firstTrain.time)}</div>
+              </div>
+
+              {/* Secondary: Other trains */}
+              {otherTrains.length > 0 && (
+                <>
+                  <div className="train-secondary-header">
+                    <div className="train-secondary-title">Other Departures</div>
                   </div>
-                  <div className={`countdown ${countdownClass}`}>
-                    {countdownText}
+                  <div className="train-secondary-list">
+                    {otherTrains.map((train, index) => {
+                      const countdown = train.isTomorrow
+                        ? 'tomorrow'
+                        : formatCountdown(train.minutesAway);
+
+                      return (
+                        <div key={index} className="train-secondary-item">
+                          <span className="train-secondary-time">{formatTime(train.time)}</span>
+                          <span className="train-secondary-countdown">{countdown}</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </>
+                </>
+              )}
+
+              {/* Add separator between directions, but not after last one */}
+              {directionIndex < trainsByDirection.length - 1 && (
+                <div className="train-direction-divider" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

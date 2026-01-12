@@ -3,6 +3,9 @@ dist/
 .DS_Store
 *.log
 
-# Claude Code plan files
-.claude/
-*_PLAN.md
+# Claude Code local settings (personal, not shared with team)
+.claude/settings.local.json
+.claude.local.md
+CLAUDE.local.md
+.claude/**/*.local.json
+.claude/**/*.local.md
