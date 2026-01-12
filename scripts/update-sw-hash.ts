@@ -7,12 +7,30 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const distDir = path.join(__dirname, '..', 'dist');
+const publicDir = path.join(__dirname, '..', 'public');
 const indexPath = path.join(distDir, 'index.html');
 const swPath = path.join(distDir, 'sw.js');
+const manifestPath = path.join(distDir, 'manifest.json');
+const swSourcePath = path.join(publicDir, 'sw.js');
 
-// Read the built index.html and generate a hash
+// Hash multiple files to ensure cache invalidation on any asset change
+const hashFiles = crypto.createHash('md5');
+
+// Hash the built index.html
 const indexContent = fs.readFileSync(indexPath, 'utf-8');
-const hash = crypto.createHash('md5').update(indexContent).digest('hex').slice(0, 8);
+hashFiles.update(indexContent);
+
+// Hash the source service worker (before the cache name is updated)
+const swSourceContent = fs.readFileSync(swSourcePath, 'utf-8');
+hashFiles.update(swSourceContent);
+
+// Hash manifest.json if it exists
+if (fs.existsSync(manifestPath)) {
+  const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
+  hashFiles.update(manifestContent);
+}
+
+const hash = hashFiles.digest('hex').slice(0, 8);
 
 // Update the service worker with the new cache name
 let swContent = fs.readFileSync(swPath, 'utf-8');
