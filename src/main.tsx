@@ -12,7 +12,15 @@ createRoot(document.getElementById('root')!).render(
 // Register service worker only in production
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker
+      .register('sw.js')
+      .then((registration) => {
+        // Check for updates on page load
+        registration.update();
+      })
+      .catch(() => {
+        // Silent fail - app still works without SW
+      });
   } else {
     // Unregister service worker in development to avoid caching issues
     navigator.serviceWorker.getRegistrations().then((registrations) => {

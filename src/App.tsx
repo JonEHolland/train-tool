@@ -5,8 +5,10 @@ import { StopSelect } from './components/StopSelect';
 import { WeekendNotice } from './components/WeekendNotice';
 import { TrainList } from './components/TrainList';
 import { AlertList } from './components/AlertList';
+import { UpdateBanner } from './components/UpdateBanner';
 import { useAlerts } from './hooks/useAlerts';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
 import { timeToMinutes, getCurrentMinutes, isWeekday } from './utils/time';
 import type { ScheduleData, NextTrain, DirectionTrains } from './types';
 import scheduleData from './schedule-data.json';
@@ -134,6 +136,7 @@ export function App() {
 
   const routeId = typedScheduleData.schedule[currentRoute]?.routeId || '';
   const { alerts, loading: alertsLoading, error: alertsError } = useAlerts(routeId);
+  const { updateAvailable, updateAndReload, dismiss } = useServiceWorkerUpdate();
 
   const stops = typedScheduleData.schedule[currentRoute]?.stops || [];
 
@@ -169,6 +172,11 @@ export function App() {
   return (
     <>
       <Header />
+      <UpdateBanner
+        visible={updateAvailable}
+        onUpdate={updateAndReload}
+        onDismiss={dismiss}
+      />
       <div className="container">
         <RouteSelect
           scheduleData={typedScheduleData}
