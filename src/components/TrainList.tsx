@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { DirectionTrains } from '../types';
 import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/time';
+import { URGENCY_THRESHOLDS } from '../utils/constants';
 import { CircularProgress, calculateProgress, getUrgencyColor } from './CircularProgress';
+import { EmptyState } from './EmptyState';
 
 interface TrainListProps {
   trainsByDirection: DirectionTrains[];
@@ -22,10 +24,10 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
     return (
       <div className="card">
         <div className="card-body">
-          <div className="no-service">
-            <div className="no-service-message">No service today</div>
-            <div className="no-service-subtitle">Sounder trains don't run on weekends</div>
-          </div>
+          <EmptyState
+            title="No service today"
+            subtitle="Sounder trains don't run on weekends"
+          />
         </div>
       </div>
     );
@@ -35,10 +37,10 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
     return (
       <div className="card">
         <div className="card-body">
-          <div className="no-service">
-            <div className="no-service-message">Select a station</div>
-            <div className="no-service-subtitle">Choose your departure stop above</div>
-          </div>
+          <EmptyState
+            title="Select a station"
+            subtitle="Choose your departure stop above"
+          />
         </div>
       </div>
     );
@@ -48,10 +50,10 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
     return (
       <div className="card">
         <div className="card-body">
-          <div className="no-service">
-            <div className="no-service-message">No trains available</div>
-            <div className="no-service-subtitle">Check back later for upcoming departures</div>
-          </div>
+          <EmptyState
+            title="No trains available"
+            subtitle="Check back later for upcoming departures"
+          />
         </div>
       </div>
     );
@@ -88,9 +90,9 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
     // Determine urgency for first train
     let urgencyClass = '';
     if (!firstTrain.isTomorrow) {
-      if (firstTrain.minutesAway <= 2) {
+      if (firstTrain.minutesAway <= URGENCY_THRESHOLDS.DANGER) {
         urgencyClass = 'urgent';
-      } else if (firstTrain.minutesAway <= 5) {
+      } else if (firstTrain.minutesAway <= URGENCY_THRESHOLDS.WARNING) {
         urgencyClass = 'soon';
       }
     }

@@ -1,4 +1,5 @@
 import type { AlertEntity } from '../types';
+import { EmptyState } from './EmptyState';
 
 interface AlertListProps {
   alerts: AlertEntity[];
@@ -15,10 +16,10 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
     content = <div className="error">{error}</div>;
   } else if (alerts.length === 0) {
     content = (
-      <div className="no-service">
-        <div className="no-service-message">No active alerts</div>
-        <div className="no-service-subtitle">All systems operating normally</div>
-      </div>
+      <EmptyState
+        title="No active alerts"
+        subtitle="All systems operating normally"
+      />
     );
   } else {
     content = alerts.map(entity => {
