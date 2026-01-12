@@ -39,3 +39,12 @@ export function formatCountdown(minutes: number): string {
   const m = Math.round(minutes % 60);
   return `in ${h}h ${m}m`;
 }
+
+/** Compact countdown format without "in" prefix - for hero display */
+export function formatCountdownCompact(minutes: number): string {
+  if (minutes < 1) return 'Now';
+  if (minutes < 60) return `${Math.round(minutes)}m`;
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return `${h}h ${m}m`;
+}

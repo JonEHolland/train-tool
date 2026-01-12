@@ -199,6 +199,7 @@ export function App() {
           trainsByDirection={trainsByDirection}
           isWeekend={weekend}
           hasStop={!!currentStop}
+          currentRoute={currentRoute}
         />
       </div>
     </>
