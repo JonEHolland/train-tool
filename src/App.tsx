@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Header } from './components/Header';
 import { RouteSelect } from './components/RouteSelect';
 import { StopSelect } from './components/StopSelect';
 import { WeekendNotice } from './components/WeekendNotice';
@@ -171,7 +170,6 @@ export function App() {
 
   return (
     <>
-      <Header />
       <UpdateBanner
         visible={updateAvailable}
         onUpdate={updateAndReload}
@@ -188,16 +186,19 @@ export function App() {
           currentStop={currentStop}
           onStopChange={setCurrentStop}
         />
+        {/* Show alerts at top if there are any */}
+        {alerts.length > 0 && (
+          <AlertList
+            alerts={alerts}
+            loading={alertsLoading}
+            error={alertsError}
+          />
+        )}
         <WeekendNotice visible={weekend} />
         <TrainList
           trainsByDirection={trainsByDirection}
           isWeekend={weekend}
           hasStop={!!currentStop}
-        />
-        <AlertList
-          alerts={alerts}
-          loading={alertsLoading}
-          error={alertsError}
         />
       </div>
     </>

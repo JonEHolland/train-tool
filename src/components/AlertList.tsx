@@ -14,7 +14,12 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
   } else if (error) {
     content = <div className="error">{error}</div>;
   } else if (alerts.length === 0) {
-    content = <div className="no-service">No active alerts</div>;
+    content = (
+      <div className="no-service">
+        <div className="no-service-message">No active alerts</div>
+        <div className="no-service-subtitle">All systems operating normally</div>
+      </div>
+    );
   } else {
     content = alerts.map(entity => {
       const alert = entity.alert;
@@ -32,8 +37,7 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
   }
 
   return (
-    <div className="card">
-      <div className="card-header">Service Alerts</div>
+    <div className="card alert-card">
       <div className="card-body">{content}</div>
     </div>
   );
