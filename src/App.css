@@ -617,23 +617,6 @@ body {
 }
 
 /* ==========================================================================
-   Weekend Notice
-   ========================================================================== */
-
-.weekend-notice {
-  background: linear-gradient(135deg, rgba(255, 184, 77, 0.15) 0%, rgba(255, 184, 77, 0.05) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
-  text-align: center;
-  color: var(--color-status-warning);
-  font-weight: 500;
-  box-shadow: var(--shadow-md);
-}
-
-/* ==========================================================================
    Update Banner
    ========================================================================== */
 

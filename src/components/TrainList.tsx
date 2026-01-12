@@ -25,8 +25,8 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
       <div className="card">
         <div className="card-body">
           <EmptyState
-            title="No service today"
-            subtitle="Sounder trains don't run on weekends"
+            title="No trains on weekends"
+            subtitle="Service resumes Monday morning"
           />
         </div>
       </div>

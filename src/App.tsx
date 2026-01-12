@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RouteSelect } from './components/RouteSelect';
 import { StopSelect } from './components/StopSelect';
-import { WeekendNotice } from './components/WeekendNotice';
 import { TrainList } from './components/TrainList';
 import { AlertList } from './components/AlertList';
 import { UpdateBanner } from './components/UpdateBanner';
@@ -195,7 +194,6 @@ export function App() {
             error={alertsError}
           />
         )}
-        <WeekendNotice visible={weekend} />
         <TrainList
           trainsByDirection={trainsByDirection}
           isWeekend={weekend}

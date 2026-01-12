@@ -28,8 +28,8 @@ test.describe('Train Schedule App', () => {
       // Should show train hero countdown
       await expect(page.locator('.train-hero-countdown')).toBeVisible();
 
-      // Should NOT show "No service" message
-      await expect(page.getByText('No service today')).not.toBeVisible();
+      // Should NOT show weekend message
+      await expect(page.getByText('No trains on weekends')).not.toBeVisible();
     });
 
     test('shows station selector with N-Line stations', async ({ page }) => {
@@ -132,17 +132,11 @@ test.describe('Train Schedule App', () => {
       await page.addInitScript(getPlaywrightDateMockScript(SATURDAY_AFTERNOON));
     });
 
-    test('shows "No service today" message on Saturday', async ({ page }) => {
+    test('shows weekend message on Saturday', async ({ page }) => {
       await page.goto('/');
 
-      await expect(page.getByText('No service today')).toBeVisible();
-      await expect(page.getByText("Sounder trains don't run on weekends")).toBeVisible();
-    });
-
-    test('shows weekend notice banner', async ({ page }) => {
-      await page.goto('/');
-
-      await expect(page.getByText(/do not operate on weekends/i)).toBeVisible();
+      await expect(page.getByText('No trains on weekends')).toBeVisible();
+      await expect(page.getByText('Service resumes Monday morning')).toBeVisible();
     });
   });
 
