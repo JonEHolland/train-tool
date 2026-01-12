@@ -8,7 +8,7 @@ A fast, beautiful Progressive Web App for Seattle-area commuters to track Sound 
 
 Sounder Train Schedule gives you exactly what you need to catch your train - nothing more, nothing less. See your next departure at a glance with a prominent countdown timer, check service alerts, and never miss a train again.
 
-**Live App:** [joneholland.github.io/train-tool](https://joneholland.github.io/train-tool/)
+**Live App:** [soundertrain.com](https://www.soundertrain.com)
 
 ## Features
 
@@ -156,6 +156,10 @@ The app automatically deploys to GitHub Pages when changes are pushed to `main`.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues and pull requests.
+
+## Disclaimer
+
+SounderTrain is a free, independent service and is not affiliated with, endorsed by, or connected to Sound Transit in any way. Schedule data is sourced from publicly available GTFS feeds and may not reflect real-time conditions. Use official Sound Transit resources for authoritative schedule information.
 
 ## License
 

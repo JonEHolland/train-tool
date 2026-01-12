@@ -748,3 +748,20 @@ body {
   }
 }
 
+/* ==========================================================================
+   Disclaimer
+   ========================================================================== */
+
+.disclaimer {
+  max-width: 500px;
+  margin: var(--spacing-8) auto var(--spacing-4);
+  padding: 0 var(--spacing-4);
+  text-align: center;
+}
+
+.disclaimer-text {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+

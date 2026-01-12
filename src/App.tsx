@@ -5,6 +5,7 @@ import { WeekendNotice } from './components/WeekendNotice';
 import { TrainList } from './components/TrainList';
 import { AlertList } from './components/AlertList';
 import { UpdateBanner } from './components/UpdateBanner';
+import { Disclaimer } from './components/Disclaimer';
 import { useAlerts } from './hooks/useAlerts';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
@@ -202,6 +203,7 @@ export function App() {
           currentRoute={currentRoute}
         />
       </div>
+      <Disclaimer />
     </>
   );
 }
