@@ -53,7 +53,7 @@ describe('TrainList', () => {
   });
 
   describe('weekend behavior', () => {
-    it('shows "No service today" message on weekend', () => {
+    it('shows weekend message on weekend', () => {
       vi.setSystemTime(TEST_TIMES.SATURDAY_AFTERNOON);
 
       render(
@@ -65,8 +65,8 @@ describe('TrainList', () => {
         />
       );
 
-      expect(screen.getByText('No service today')).toBeInTheDocument();
-      expect(screen.getByText("Sounder trains don't run on weekends")).toBeInTheDocument();
+      expect(screen.getByText('No trains on weekends')).toBeInTheDocument();
+      expect(screen.getByText('Service resumes Monday morning')).toBeInTheDocument();
     });
 
     it('shows weekend message even if train data is provided', () => {
@@ -81,7 +81,7 @@ describe('TrainList', () => {
         />
       );
 
-      expect(screen.getByText('No service today')).toBeInTheDocument();
+      expect(screen.getByText('No trains on weekends')).toBeInTheDocument();
     });
   });
 
