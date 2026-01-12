@@ -8,7 +8,7 @@
   "theme_color": "#0A1628",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23004F2D' width='100' height='100' rx='20'/><g fill='white'><rect x='25' y='25' width='50' height='40' rx='8'/><rect x='30' y='32' width='15' height='12' rx='2' fill='%23004F2D'/><rect x='55' y='32' width='15' height='12' rx='2' fill='%23004F2D'/><rect x='20' y='60' width='60' height='8' rx='2'/><circle cx='32' cy='75' r='6'/><circle cx='68' cy='75' r='6'/><rect x='45' y='18' width='10' height='10' rx='2'/></g></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%235FEAD4'/><stop offset='100%25' style='stop-color:%234DD4BC'/></linearGradient></defs><rect fill='%230A1628' width='100' height='100' rx='22'/><g fill='url(%23g)'><rect x='20' y='35' width='60' height='35' rx='6'/><rect x='27' y='42' width='18' height='14' rx='3' opacity='0.3' fill='%230A1628'/><rect x='55' y='42' width='18' height='14' rx='3' opacity='0.3' fill='%230A1628'/><circle cx='30' cy='78' r='7' opacity='0.8'/><circle cx='70' cy='78' r='7' opacity='0.8'/><rect x='42' y='27' width='16' height='4' rx='2'/></g></svg>",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
