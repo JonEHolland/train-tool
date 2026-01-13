@@ -355,7 +355,7 @@ body {
   align-items: center;
   gap: var(--spacing-2);
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-4);
   letter-spacing: -0.02em;
@@ -530,11 +530,24 @@ body {
   transform: scale(0.995);
 }
 
+.train-secondary-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .train-secondary-time {
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
-  text-align: left;
+}
+
+.train-secondary-number {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .train-secondary-countdown {
@@ -748,6 +761,10 @@ body {
 
   .update-banner {
     margin: var(--spacing-4) var(--spacing-3);
+  }
+
+  .train-direction-header {
+    font-size: 1.25rem;
   }
 }
 

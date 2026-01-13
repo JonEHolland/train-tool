@@ -60,6 +60,8 @@ export interface NextTrain {
   isTomorrow?: boolean;
   /** Timestamp when train entered "Departing" state (Date.now() value) */
   departingAt?: number;
+  /** Train number extracted from tripId (e.g., "1700", "1820E") */
+  trainNumber?: string;
 }
 
 export interface DirectionTrains {
