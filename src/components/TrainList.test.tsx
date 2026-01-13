@@ -142,7 +142,8 @@ describe('TrainList', () => {
         />
       );
 
-      expect(screen.getByText('To Everett Station')).toBeInTheDocument();
+      // Header shows "to {destination}" - using regex to match the text node
+      expect(screen.getByText(/to Everett Station/)).toBeInTheDocument();
     });
 
     it('shows hero countdown for first train', () => {
@@ -274,14 +275,14 @@ describe('TrainList', () => {
         />
       );
 
-      // Initially shows Tacoma (first direction)
-      expect(screen.getByText('To Tacoma Dome Station')).toBeInTheDocument();
+      // Initially shows Tacoma (first direction) - using regex due to train number span
+      expect(screen.getByText(/to Tacoma Dome Station/)).toBeInTheDocument();
 
       // Click Lakewood tab
       fireEvent.click(screen.getByRole('button', { name: /Lakewood/i }));
 
       // Should now show Lakewood
-      expect(screen.getByText('To Lakewood Station')).toBeInTheDocument();
+      expect(screen.getByText(/to Lakewood Station/)).toBeInTheDocument();
     });
 
     it('does not show tabs for single direction', () => {
@@ -363,6 +364,213 @@ describe('TrainList', () => {
       );
 
       expect(container.querySelector('.train-hero.departing')).toBeInTheDocument();
+    });
+  });
+
+  describe('train alerts', () => {
+    const mockTrainWithDelayAlert: DirectionTrains[] = [
+      {
+        directionName: 'Everett Station',
+        trains: [
+          {
+            destination: 'Everett Station',
+            time: '08:05:00',
+            minutesAway: 35,
+            isTomorrow: false,
+            trainNumber: '1700',
+            alert: {
+              trainNumber: '1700',
+              severity: 'delayed',
+              message: 'Running 15m late',
+              delayMinutes: 15,
+              alertId: 'alert-1',
+            },
+          },
+          {
+            destination: 'Everett Station',
+            time: '08:33:00',
+            minutesAway: 63,
+            isTomorrow: false,
+            trainNumber: '1702',
+          },
+        ],
+      },
+    ];
+
+    const mockTrainWithCancelledAlert: DirectionTrains[] = [
+      {
+        directionName: 'Everett Station',
+        trains: [
+          {
+            destination: 'Everett Station',
+            time: '08:05:00',
+            minutesAway: 35,
+            isTomorrow: false,
+            trainNumber: '1700',
+            alert: {
+              trainNumber: '1700',
+              severity: 'cancelled',
+              message: 'Cancelled',
+              alertId: 'alert-1',
+            },
+          },
+        ],
+      },
+    ];
+
+    const mockSecondaryTrainWithAlert: DirectionTrains[] = [
+      {
+        directionName: 'Everett Station',
+        trains: [
+          {
+            destination: 'Everett Station',
+            time: '08:05:00',
+            minutesAway: 35,
+            isTomorrow: false,
+            trainNumber: '1700',
+          },
+          {
+            destination: 'Everett Station',
+            time: '08:33:00',
+            minutesAway: 63,
+            isTomorrow: false,
+            trainNumber: '1702',
+            alert: {
+              trainNumber: '1702',
+              severity: 'delayed',
+              message: 'Running 10m late',
+              delayMinutes: 10,
+              alertId: 'alert-2',
+            },
+          },
+          {
+            destination: 'Everett Station',
+            time: '09:00:00',
+            minutesAway: 90,
+            isTomorrow: false,
+            trainNumber: '1704',
+            alert: {
+              trainNumber: '1704',
+              severity: 'cancelled',
+              message: 'Cancelled',
+              alertId: 'alert-3',
+            },
+          },
+        ],
+      },
+    ];
+
+    it('displays alert text below hero ring for delayed train', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      render(
+        <TrainList
+          trainsByDirection={mockTrainWithDelayAlert}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      expect(screen.getByText('Running 15m late')).toBeInTheDocument();
+    });
+
+    it('displays alert text below hero ring for cancelled train', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      render(
+        <TrainList
+          trainsByDirection={mockTrainWithCancelledAlert}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      expect(screen.getByText('Cancelled')).toBeInTheDocument();
+    });
+
+    it('applies correct CSS class for delayed alert', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      const { container } = render(
+        <TrainList
+          trainsByDirection={mockTrainWithDelayAlert}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      expect(container.querySelector('.train-alert-text--delayed')).toBeInTheDocument();
+    });
+
+    it('applies correct CSS class for cancelled alert on hero countdown', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      const { container } = render(
+        <TrainList
+          trainsByDirection={mockTrainWithCancelledAlert}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      // Cancelled hero shows "Cancelled" text with matching color class
+      expect(container.querySelector('.train-hero-countdown--cancelled')).toBeInTheDocument();
+    });
+
+    it('shows alert indicator dot on secondary train with alert', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      const { container } = render(
+        <TrainList
+          trainsByDirection={mockSecondaryTrainWithAlert}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      // Should have indicator dots for the two secondary trains with alerts
+      const delayedIndicator = container.querySelector('.train-alert-indicator--delayed');
+      const cancelledIndicator = container.querySelector('.train-alert-indicator--cancelled');
+
+      expect(delayedIndicator).toBeInTheDocument();
+      expect(cancelledIndicator).toBeInTheDocument();
+    });
+
+    it('shows "Cancelled" text for cancelled secondary train', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      const { container } = render(
+        <TrainList
+          trainsByDirection={mockSecondaryTrainWithAlert}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      // Cancelled secondary trains show "Cancelled" with red text
+      expect(container.querySelector('.train-cancelled')).toBeInTheDocument();
+      expect(container.querySelector('.train-secondary-countdown--cancelled')).toBeInTheDocument();
+    });
+
+    it('does not show alert text for trains without alerts', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      const { container } = render(
+        <TrainList
+          trainsByDirection={mockSingleDirection}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      expect(container.querySelector('.train-alert-text')).not.toBeInTheDocument();
     });
   });
 });

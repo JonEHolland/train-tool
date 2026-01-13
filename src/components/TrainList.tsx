@@ -3,6 +3,7 @@ import type { DirectionTrains } from '../types';
 import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/time';
 import { URGENCY_THRESHOLDS } from '../utils/constants';
 import { CircularProgress, calculateProgress, getUrgencyColor } from './CircularProgress';
+import type { NextTrain } from '../types';
 import { EmptyState } from './EmptyState';
 
 interface TrainListProps {
@@ -10,6 +11,25 @@ interface TrainListProps {
   isWeekend: boolean;
   hasStop: boolean;
   currentRoute?: string;
+}
+
+/**
+ * Get ring color with alert severity override.
+ * Alert severity takes precedence over time-based urgency colors.
+ */
+function getTrainRingColor(train: NextTrain, isDeparting: boolean): string {
+  // Alert severity overrides time-based urgency
+  if (train.alert?.severity === 'cancelled') {
+    return 'var(--color-status-danger)';
+  }
+  if (train.alert?.severity === 'delayed') {
+    return 'var(--color-status-warning)';
+  }
+  if (train.alert?.severity === 'modified') {
+    return 'var(--color-status-info)';
+  }
+  // Fall back to existing urgency-based color
+  return getUrgencyColor(train.minutesAway, isDeparting);
 }
 
 export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute }: TrainListProps) {
@@ -120,22 +140,27 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
       }
     }
 
-    const firstCountdown = firstTrain.isTomorrow
-      ? 'Tomorrow'
-      : formatCountdownCompact(firstTrain.minutesAway, isDeparting);
+    // For cancelled trains, show "Cancelled" instead of countdown
+    const isCancelledHero = firstTrain.alert?.severity === 'cancelled';
+    const firstCountdown = isCancelledHero
+      ? 'Cancelled'
+      : firstTrain.isTomorrow
+        ? 'Tomorrow'
+        : formatCountdownCompact(firstTrain.minutesAway, isDeparting);
 
     const progress = firstTrain.isTomorrow ? 1 : calculateProgress(firstTrain.minutesAway);
     const ringColor = firstTrain.isTomorrow
       ? 'var(--color-accent-primary)'
-      : getUrgencyColor(firstTrain.minutesAway, isDeparting);
+      : getTrainRingColor(firstTrain, isDeparting);
 
     const directionArrow = getDirectionArrow(direction.directionName);
 
-    // Build countdown class with animation state
+    // Build countdown class with animation state and alert styling
     const countdownClasses = [
       'train-hero-countdown',
       firstTrain.isTomorrow ? 'tomorrow' : '',
-      isAnimating && !isDeparting ? 'minute-changed' : ''
+      isAnimating && !isDeparting ? 'minute-changed' : '',
+      firstTrain.alert ? `train-hero-countdown--${firstTrain.alert.severity}` : ''
     ].filter(Boolean).join(' ');
 
     return (
@@ -151,19 +176,27 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
 
         {/* Hero: Next Train with circular progress */}
         <div className={`train-hero ${urgencyClass}`}>
-          <CircularProgress
-            progress={progress}
-            color={ringColor}
-            size={180}
-            strokeWidth={6}
-          >
-            <div className="train-hero-inner">
-              <div className={countdownClasses}>
-                {firstCountdown}
+          <div className="train-hero-container">
+            <CircularProgress
+              progress={progress}
+              color={ringColor}
+              size={180}
+              strokeWidth={6}
+            >
+              <div className="train-hero-inner">
+                <div className={countdownClasses}>
+                  {firstCountdown}
+                </div>
+                <div className="train-hero-time">{formatTime(firstTrain.time)}</div>
               </div>
-              <div className="train-hero-time">{formatTime(firstTrain.time)}</div>
-            </div>
-          </CircularProgress>
+            </CircularProgress>
+            {/* Alert text below the ring (skip for cancelled since countdown shows it) */}
+            {firstTrain.alert && firstTrain.alert.severity !== 'cancelled' && (
+              <div className={`train-alert-text train-alert-text--${firstTrain.alert.severity}`}>
+                {firstTrain.alert.message}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Secondary: Other trains */}
@@ -175,19 +208,35 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
             <div className="train-secondary-list">
               {otherTrains.map((train, index) => {
                 const trainIsDeparting = train.departingAt !== undefined;
-                const countdown = train.isTomorrow
-                  ? 'tomorrow'
-                  : formatCountdown(train.minutesAway, trainIsDeparting);
+                const isCancelled = train.alert?.severity === 'cancelled';
+                // Show "Cancelled" instead of countdown for cancelled trains
+                const countdown = isCancelled
+                  ? 'Cancelled'
+                  : train.isTomorrow
+                    ? 'tomorrow'
+                    : formatCountdown(train.minutesAway, trainIsDeparting);
 
                 return (
-                  <div key={index} className="train-secondary-item">
+                  <div
+                    key={index}
+                    className={`train-secondary-item ${isCancelled ? 'train-cancelled' : ''}`}
+                  >
                     <span className="train-secondary-left">
                       <span className="train-secondary-time">{formatTime(train.time)}</span>
                       {train.trainNumber && (
                         <span className="train-secondary-number">#{train.trainNumber}</span>
                       )}
+                      {train.alert && (
+                        <span
+                          className={`train-alert-indicator train-alert-indicator--${train.alert.severity}`}
+                          data-tooltip={train.alert.message}
+                          title={train.alert.message}
+                        />
+                      )}
                     </span>
-                    <span className="train-secondary-countdown">{countdown}</span>
+                    <span className={`train-secondary-countdown ${isCancelled ? 'train-secondary-countdown--cancelled' : ''}`}>
+                      {countdown}
+                    </span>
                   </div>
                 );
               })}

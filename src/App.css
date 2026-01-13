@@ -571,6 +571,142 @@ body {
 }
 
 /* ==========================================================================
+   Train Alert Indicators
+   ========================================================================== */
+
+/* Container for hero with alert text below */
+.train-hero-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Subtle alert text line for hero train (below the ring) */
+.train-alert-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-top: var(--spacing-3);
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.train-alert-text--delayed {
+  color: var(--color-status-warning);
+}
+
+.train-alert-text--cancelled {
+  color: var(--color-status-danger);
+}
+
+.train-alert-text--modified {
+  color: var(--color-status-info);
+}
+
+.train-alert-text--info {
+  color: var(--color-text-secondary);
+}
+
+/* Small indicator dot for secondary trains with tooltip */
+.train-alert-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: var(--spacing-2);
+  flex-shrink: 0;
+  display: inline-block;
+  position: relative;
+  cursor: help;
+}
+
+/* CSS tooltip for alert indicator */
+.train-alert-indicator::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-surface-glass-border);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+
+/* Tooltip arrow */
+.train-alert-indicator::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-bg-tertiary);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  z-index: 101;
+}
+
+.train-alert-indicator:hover::after,
+.train-alert-indicator:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+.train-alert-indicator--delayed {
+  background: var(--color-status-warning);
+  box-shadow: 0 0 6px rgba(255, 140, 66, 0.5);
+}
+
+.train-alert-indicator--cancelled {
+  background: var(--color-status-danger);
+  box-shadow: 0 0 6px rgba(255, 107, 107, 0.5);
+}
+
+.train-alert-indicator--modified {
+  background: var(--color-status-info);
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+}
+
+.train-alert-indicator--info {
+  background: var(--color-text-tertiary);
+}
+
+/* Hero countdown text color matching ring for alerts */
+.train-hero-countdown--delayed {
+  color: var(--color-status-warning) !important;
+}
+
+.train-hero-countdown--cancelled {
+  color: var(--color-status-danger) !important;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.train-hero-countdown--modified {
+  color: var(--color-status-info) !important;
+}
+
+/* Cancelled train styling - subtle opacity, no strikethrough */
+.train-cancelled {
+  opacity: 0.7;
+}
+
+/* Cancelled countdown text in secondary list */
+.train-secondary-countdown--cancelled {
+  color: var(--color-status-danger);
+}
+
+/* ==========================================================================
    Alerts - Modern minimal design
    ========================================================================== */
 

@@ -1,12 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { AlertEntity, AlertsResponse } from '../types';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { AlertEntity, AlertsResponse, TrainAlert } from '../types';
+import { parseTrainAlerts } from '../utils/parseTrainAlerts';
 
 const ALERTS_SOURCE = 'https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json';
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 const ALERTS_URL = CORS_PROXY + encodeURIComponent(ALERTS_SOURCE);
 
 interface UseAlertsResult {
+  /** All relevant alerts (unchanged for backwards compatibility) */
   alerts: AlertEntity[];
+  /** Map of train number to parsed alert info for O(1) lookup */
+  trainAlerts: Map<string, TrainAlert>;
+  /** Alerts not tied to specific trains */
+  generalAlerts: AlertEntity[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -48,5 +54,15 @@ export function useAlerts(routeId: string): UseAlertsResult {
     return () => clearInterval(interval);
   }, [fetchAlerts]);
 
-  return { alerts, loading, error, refetch: fetchAlerts };
+  // Parse alerts to extract train-specific alerts (memoized)
+  const parsedAlerts = useMemo(() => parseTrainAlerts(alerts), [alerts]);
+
+  return {
+    alerts,
+    trainAlerts: parsedAlerts.trainAlerts,
+    generalAlerts: parsedAlerts.generalAlerts,
+    loading,
+    error,
+    refetch: fetchAlerts,
+  };
 }

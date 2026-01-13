@@ -48,8 +48,8 @@ test.describe('Train Schedule App', () => {
     test('shows direction header', async ({ page }) => {
       await page.goto('/');
 
-      // Should show "To [Station]" header
-      await expect(page.getByText(/To .+ Station/)).toBeVisible();
+      // Should show "to [Station]" header (lowercase after train number)
+      await expect(page.getByText(/to .+ Station/i)).toBeVisible();
     });
   });
 
