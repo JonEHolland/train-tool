@@ -140,10 +140,13 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
 
     return (
       <div className="train-direction-section">
-        {/* Direction header with arrow */}
+        {/* Direction header with arrow and train number */}
         <div className="train-direction-header">
           {directionArrow && <span className="direction-arrow">{directionArrow}</span>}
-          <span>To {direction.directionName}</span>
+          <span>
+            {firstTrain.trainNumber && <span className="train-direction-number">#{firstTrain.trainNumber}</span>}
+            {' '}to {direction.directionName}
+          </span>
         </div>
 
         {/* Hero: Next Train with circular progress */}
@@ -178,7 +181,12 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
 
                 return (
                   <div key={index} className="train-secondary-item">
-                    <span className="train-secondary-time">{formatTime(train.time)}</span>
+                    <span className="train-secondary-left">
+                      <span className="train-secondary-time">{formatTime(train.time)}</span>
+                      {train.trainNumber && (
+                        <span className="train-secondary-number">#{train.trainNumber}</span>
+                      )}
+                    </span>
                     <span className="train-secondary-countdown">{countdown}</span>
                   </div>
                 );

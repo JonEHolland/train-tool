@@ -10,6 +10,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
 import { timeToMinutes, getCurrentMinutes, isWeekday } from './utils/time';
 import { UPDATE_INTERVAL_MS, DEPARTING_DURATION_MS } from './utils/constants';
+import { extractTrainNumber } from './utils/trainNumber';
 import type { ScheduleData, NextTrain, DirectionTrains } from './types';
 import scheduleData from './schedule-data.json';
 
@@ -109,7 +110,8 @@ function getTrainsByDirection(data: ScheduleData, route: string, stopId: string)
         destination: terminus,
         time: stopTime.departure,
         minutesAway,
-        isTomorrow
+        isTomorrow,
+        trainNumber: extractTrainNumber(trip.tripId)
       });
     }
   }

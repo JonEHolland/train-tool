@@ -14,7 +14,21 @@ const TRAIN_WARNING = '2026-01-06T06:12:00';      // 3 minutes before (WARNING s
 const TRAIN_COMFORTABLE = '2026-01-06T06:05:00';  // 10 minutes before (COMFORTABLE state - yellow)
 const TRAIN_NORMAL = '2026-01-06T05:45:00';       // 30 minutes before (NORMAL state - teal)
 
+// Mock empty alerts response to ensure consistent screenshots
+const EMPTY_ALERTS_RESPONSE = { entity: [] };
+
 test.describe('Visual Regression', () => {
+  // Mock alerts API to return empty data for all visual tests
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/api.allorigins.win/**', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(EMPTY_ALERTS_RESPONSE),
+      });
+    });
+  });
+
   test('N-Line morning view', async ({ page }) => {
     await page.addInitScript(getPlaywrightDateMockScript(WEEKDAY_MORNING));
     await page.goto('/');
