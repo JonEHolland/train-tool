@@ -58,6 +58,8 @@ export interface NextTrain {
   time: string;
   minutesAway: number;
   isTomorrow?: boolean;
+  /** Timestamp when train entered "Departing" state (Date.now() value) */
+  departingAt?: number;
 }
 
 export interface DirectionTrains {

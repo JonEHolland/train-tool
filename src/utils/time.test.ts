@@ -192,16 +192,27 @@ describe('time utilities', () => {
       expect(formatCountdown(59)).toBe('in 59 min');
     });
 
-    it('shows "in Xh Ym" for times 60 minutes or more', () => {
-      expect(formatCountdown(60)).toBe('in 1h 0m');
-      expect(formatCountdown(90)).toBe('in 1h 30m');
-      expect(formatCountdown(120)).toBe('in 2h 0m');
-      expect(formatCountdown(150)).toBe('in 2h 30m');
+    it('shows "in Xh Y min" for times 60 minutes or more', () => {
+      expect(formatCountdown(60)).toBe('in 1h 0 min');
+      expect(formatCountdown(90)).toBe('in 1h 30 min');
+      expect(formatCountdown(120)).toBe('in 2h 0 min');
+      expect(formatCountdown(150)).toBe('in 2h 30 min');
     });
 
     it('rounds minutes correctly', () => {
       expect(formatCountdown(14.4)).toBe('in 14 min');
       expect(formatCountdown(14.6)).toBe('in 15 min');
+    });
+
+    it('shows "Departing" when isDeparting is true', () => {
+      expect(formatCountdown(0, true)).toBe('Departing');
+      expect(formatCountdown(5, true)).toBe('Departing');
+      expect(formatCountdown(60, true)).toBe('Departing');
+    });
+
+    it('shows normal format when isDeparting is false', () => {
+      expect(formatCountdown(0, false)).toBe('Departing now');
+      expect(formatCountdown(5, false)).toBe('in 5 min');
     });
   });
 
@@ -228,6 +239,17 @@ describe('time utilities', () => {
     it('rounds minutes correctly', () => {
       expect(formatCountdownCompact(14.4)).toBe('14m');
       expect(formatCountdownCompact(14.6)).toBe('15m');
+    });
+
+    it('shows "Departing" when isDeparting is true', () => {
+      expect(formatCountdownCompact(0, true)).toBe('Departing');
+      expect(formatCountdownCompact(5, true)).toBe('Departing');
+      expect(formatCountdownCompact(60, true)).toBe('Departing');
+    });
+
+    it('shows normal format when isDeparting is false', () => {
+      expect(formatCountdownCompact(0, false)).toBe('Now');
+      expect(formatCountdownCompact(5, false)).toBe('5m');
     });
   });
 });

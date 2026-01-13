@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { DirectionTrains } from '../types';
 import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/time';
 import { URGENCY_THRESHOLDS } from '../utils/constants';
@@ -14,11 +14,28 @@ interface TrainListProps {
 
 export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute }: TrainListProps) {
   const [activeTab, setActiveTab] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const prevMinutesRef = useRef<number | null>(null);
 
   // Reset tab when directions change (e.g., route or stop change)
   useEffect(() => {
     setActiveTab(0);
   }, [trainsByDirection.map(d => d.directionName).join(',')]);
+
+  // Get current first train for animation tracking
+  const currentDirection = trainsByDirection[activeTab] || trainsByDirection[0];
+  const firstTrain = currentDirection?.trains[0];
+  const currentMinutes = firstTrain ? Math.floor(firstTrain.minutesAway) : null;
+
+  // Trigger animation when minute value changes
+  useEffect(() => {
+    if (currentMinutes !== null && prevMinutesRef.current !== null && currentMinutes !== prevMinutesRef.current) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 300);
+      return () => clearTimeout(timer);
+    }
+    prevMinutesRef.current = currentMinutes;
+  }, [currentMinutes]);
 
   if (isWeekend) {
     return (
@@ -60,7 +77,7 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
   }
 
   const hasMultipleDirections = trainsByDirection.length > 1;
-  const currentDirection = trainsByDirection[activeTab] || trainsByDirection[0];
+  // currentDirection is already defined above for animation tracking
 
   // Get direction arrow based on direction name and current route
   const getDirectionArrow = (directionName: string) => {
@@ -87,26 +104,39 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
   const renderDirection = (direction: DirectionTrains) => {
     const [firstTrain, ...otherTrains] = direction.trains;
 
+    const isDeparting = firstTrain.departingAt !== undefined;
+
     // Determine urgency for first train
     let urgencyClass = '';
     if (!firstTrain.isTomorrow) {
-      if (firstTrain.minutesAway <= URGENCY_THRESHOLDS.DANGER) {
+      if (isDeparting) {
+        urgencyClass = 'departing';
+      } else if (firstTrain.minutesAway <= URGENCY_THRESHOLDS.DANGER) {
         urgencyClass = 'urgent';
       } else if (firstTrain.minutesAway <= URGENCY_THRESHOLDS.WARNING) {
         urgencyClass = 'soon';
+      } else if (firstTrain.minutesAway <= URGENCY_THRESHOLDS.COMFORTABLE) {
+        urgencyClass = 'comfortable';
       }
     }
 
     const firstCountdown = firstTrain.isTomorrow
       ? 'Tomorrow'
-      : formatCountdownCompact(firstTrain.minutesAway);
+      : formatCountdownCompact(firstTrain.minutesAway, isDeparting);
 
     const progress = firstTrain.isTomorrow ? 1 : calculateProgress(firstTrain.minutesAway);
     const ringColor = firstTrain.isTomorrow
       ? 'var(--color-accent-primary)'
-      : getUrgencyColor(firstTrain.minutesAway);
+      : getUrgencyColor(firstTrain.minutesAway, isDeparting);
 
     const directionArrow = getDirectionArrow(direction.directionName);
+
+    // Build countdown class with animation state
+    const countdownClasses = [
+      'train-hero-countdown',
+      firstTrain.isTomorrow ? 'tomorrow' : '',
+      isAnimating && !isDeparting ? 'minute-changed' : ''
+    ].filter(Boolean).join(' ');
 
     return (
       <div className="train-direction-section">
@@ -125,7 +155,7 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
             strokeWidth={6}
           >
             <div className="train-hero-inner">
-              <div className={`train-hero-countdown ${firstTrain.isTomorrow ? 'tomorrow' : ''}`}>
+              <div className={countdownClasses}>
                 {firstCountdown}
               </div>
               <div className="train-hero-time">{formatTime(firstTrain.time)}</div>
@@ -141,9 +171,10 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
             </div>
             <div className="train-secondary-list">
               {otherTrains.map((train, index) => {
+                const trainIsDeparting = train.departingAt !== undefined;
                 const countdown = train.isTomorrow
                   ? 'tomorrow'
-                  : formatCountdown(train.minutesAway);
+                  : formatCountdown(train.minutesAway, trainIsDeparting);
 
                 return (
                   <div key={index} className="train-secondary-item">

@@ -17,9 +17,9 @@ Sounder Train Schedule gives you exactly what you need to catch your train - not
 The circular progress ring shows exactly how long until your next train. The countdown changes color based on urgency:
 
 - **Red (2 min or less)** - Time to run!
-- **Orange (3-5 min)** - Better hurry
-- **Teal (6-15 min)** - Comfortable
-- **Cyan (15+ min)** - Plenty of time
+- **Burnt orange (3-5 min)** - Better hurry
+- **Yellow (6-15 min)** - Comfortable
+- **Teal (15+ min)** - Plenty of time
 
 ![Urgent departure warning](docs/screenshots/urgent-departure.png)
 

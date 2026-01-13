@@ -112,9 +112,11 @@ export function calculateProgress(minutesAway: number): number {
 }
 
 /** Helper to get color based on urgency */
-export function getUrgencyColor(minutesAway: number): string {
+export function getUrgencyColor(minutesAway: number, isDeparting?: boolean): string {
+  // Departing trains always show danger color
+  if (isDeparting) return 'var(--color-status-danger)';
   if (minutesAway <= URGENCY_THRESHOLDS.DANGER) return 'var(--color-status-danger)';
   if (minutesAway <= URGENCY_THRESHOLDS.WARNING) return 'var(--color-status-warning)';
-  if (minutesAway <= URGENCY_THRESHOLDS.COMFORTABLE) return 'var(--color-accent-secondary)';
+  if (minutesAway <= URGENCY_THRESHOLDS.COMFORTABLE) return 'var(--color-status-comfortable)';
   return 'var(--color-accent-primary)';
 }

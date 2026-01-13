@@ -17,7 +17,8 @@
   --color-text-tertiary: #6B7A99;
 
   --color-status-success: #4DD4BC;
-  --color-status-warning: #FFB84D;
+  --color-status-warning: #FF8C42;       /* Burnt orange */
+  --color-status-comfortable: #FFD93D;  /* Light yellow */
   --color-status-danger: #FF6B6B;
   --color-status-info: #4A90E2;
 
@@ -388,7 +389,7 @@ body {
 }
 
 .circular-progress-ring {
-  transition: stroke-dashoffset 1s ease-out, stroke 0.5s ease;
+  transition: stroke-dashoffset 0.5s ease-out, stroke 0.5s ease;
 }
 
 .circular-progress-content {
@@ -457,6 +458,35 @@ body {
   }
   50% {
     opacity: 0.6;
+  }
+}
+
+/* Comfortable state (6-15 min) */
+.train-hero.comfortable .train-hero-countdown {
+  color: var(--color-status-comfortable);
+}
+
+/* Departing state */
+.train-hero.departing .train-hero-countdown {
+  color: var(--color-status-danger);
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+/* Minute-change animation - subtle scale pulse when countdown changes */
+.train-hero-countdown.minute-changed {
+  animation: minute-tick 0.3s ease-out;
+}
+
+@keyframes minute-tick {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 

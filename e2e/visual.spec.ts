@@ -7,6 +7,13 @@ const WEEKDAY_MORNING = '2026-01-06T07:30:00';    // Tuesday
 const WEEKDAY_EVENING = '2026-01-06T17:30:00';    // Tuesday
 const SATURDAY_AFTERNOON = '2026-01-10T14:00:00'; // Saturday
 
+// Urgency state test times (based on 6:15 AM Everett -> Seattle train)
+const TRAIN_DEPARTING = '2026-01-06T06:15:00';    // Exact departure time (DEPARTING state)
+const TRAIN_DANGER = '2026-01-06T06:14:00';       // 1 minute before (DANGER state - red)
+const TRAIN_WARNING = '2026-01-06T06:12:00';      // 3 minutes before (WARNING state - burnt orange)
+const TRAIN_COMFORTABLE = '2026-01-06T06:05:00';  // 10 minutes before (COMFORTABLE state - yellow)
+const TRAIN_NORMAL = '2026-01-06T05:45:00';       // 30 minutes before (NORMAL state - teal)
+
 test.describe('Visual Regression', () => {
   test('N-Line morning view', async ({ page }) => {
     await page.addInitScript(getPlaywrightDateMockScript(WEEKDAY_MORNING));
@@ -82,6 +89,72 @@ test.describe('Visual Regression', () => {
     await page.waitForTimeout(500);
 
     await expect(page).toHaveScreenshot('everett-station-selected.png', {
+      maxDiffPixels: 100,
+    });
+  });
+
+  // Urgency state visual tests - one for each color state
+  test('Urgency: Normal state (>15 min, teal)', async ({ page }) => {
+    await page.addInitScript(getPlaywrightDateMockScript(TRAIN_NORMAL));
+    await page.goto('/');
+
+    await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(500);
+
+    await expect(page).toHaveScreenshot('urgency-normal.png', {
+      maxDiffPixels: 100,
+    });
+  });
+
+  test('Urgency: Comfortable state (6-15 min, yellow)', async ({ page }) => {
+    await page.addInitScript(getPlaywrightDateMockScript(TRAIN_COMFORTABLE));
+    await page.goto('/');
+
+    await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(500);
+
+    await expect(page).toHaveScreenshot('urgency-comfortable.png', {
+      maxDiffPixels: 100,
+    });
+  });
+
+  test('Urgency: Warning state (3-5 min, burnt orange)', async ({ page }) => {
+    await page.addInitScript(getPlaywrightDateMockScript(TRAIN_WARNING));
+    await page.goto('/');
+
+    await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(500);
+
+    await expect(page).toHaveScreenshot('urgency-warning.png', {
+      maxDiffPixels: 100,
+    });
+  });
+
+  test('Urgency: Danger state (1-2 min, red)', async ({ page }) => {
+    await page.addInitScript(getPlaywrightDateMockScript(TRAIN_DANGER));
+    await page.goto('/');
+
+    await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(500);
+
+    await expect(page).toHaveScreenshot('urgency-danger.png', {
+      maxDiffPixels: 100,
+    });
+  });
+
+  test('Urgency: Departing state (0 min, red)', async ({ page }) => {
+    await page.addInitScript(getPlaywrightDateMockScript(TRAIN_DEPARTING));
+    await page.goto('/');
+
+    await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(500);
+
+    await expect(page).toHaveScreenshot('urgency-departing.png', {
       maxDiffPixels: 100,
     });
   });
