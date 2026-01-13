@@ -40,10 +40,10 @@ describe('CircularProgress helpers', () => {
       expect(getUrgencyColor(5)).toBe('var(--color-status-warning)');
     });
 
-    it('returns secondary accent for 6-15 minutes', () => {
-      expect(getUrgencyColor(6)).toBe('var(--color-accent-secondary)');
-      expect(getUrgencyColor(10)).toBe('var(--color-accent-secondary)');
-      expect(getUrgencyColor(15)).toBe('var(--color-accent-secondary)');
+    it('returns comfortable color for 6-15 minutes', () => {
+      expect(getUrgencyColor(6)).toBe('var(--color-status-comfortable)');
+      expect(getUrgencyColor(10)).toBe('var(--color-status-comfortable)');
+      expect(getUrgencyColor(15)).toBe('var(--color-status-comfortable)');
     });
 
     it('returns primary accent for more than 15 minutes', () => {

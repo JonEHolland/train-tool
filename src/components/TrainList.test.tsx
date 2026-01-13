@@ -43,6 +43,16 @@ const mockTomorrowTrains: DirectionTrains[] = [
   },
 ];
 
+const mockDepartingTrain: DirectionTrains[] = [
+  {
+    directionName: 'Everett Station',
+    trains: [
+      { destination: 'Everett Station', time: '08:05:00', minutesAway: 0, isTomorrow: false, departingAt: Date.now() - 5000 },
+      { destination: 'Everett Station', time: '08:33:00', minutesAway: 28, isTomorrow: false },
+    ],
+  },
+];
+
 describe('TrainList', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -321,6 +331,38 @@ describe('TrainList', () => {
 
       // Tacoma is south
       expect(screen.getAllByText('↓').length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('departing state', () => {
+    it('shows "Departing" when train has departingAt set', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      render(
+        <TrainList
+          trainsByDirection={mockDepartingTrain}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      expect(screen.getByText('Departing')).toBeInTheDocument();
+    });
+
+    it('applies departing urgency class to hero', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      const { container } = render(
+        <TrainList
+          trainsByDirection={mockDepartingTrain}
+          isWeekend={false}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      expect(container.querySelector('.train-hero.departing')).toBeInTheDocument();
     });
   });
 });

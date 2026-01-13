@@ -15,3 +15,14 @@ export const URGENCY_THRESHOLDS = {
  * Beyond this, the ring shows as full
  */
 export const PROGRESS_MAX_MINUTES = 60;
+
+/**
+ * Update interval for train countdown (in milliseconds)
+ * 10 seconds provides responsiveness without excessive updates
+ */
+export const UPDATE_INTERVAL_MS = 10000;
+
+/**
+ * How long to show "Departing" state before removing train (in milliseconds)
+ */
+export const DEPARTING_DURATION_MS = 30000;

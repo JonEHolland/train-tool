@@ -7,6 +7,8 @@ const WEEKDAY_MORNING = '2026-01-06T07:30:00';    // Tuesday
 const WEEKDAY_EVENING = '2026-01-06T17:30:00';    // Tuesday
 const SATURDAY_AFTERNOON = '2026-01-10T14:00:00'; // Saturday
 const WEEKDAY_LATE_NIGHT = '2026-01-06T23:30:00'; // Tuesday
+const TRAIN_DEPARTING = '2026-01-06T06:15:00';    // Exact departure time for 6:15 AM train from Everett
+const TRAIN_JUST_DEPARTED = '2026-01-06T06:15:15'; // 15s after departure
 
 test.describe('Train Schedule App', () => {
   test.describe('weekday morning', () => {
@@ -199,6 +201,41 @@ test.describe('Train Schedule App', () => {
       // Should have switched to S-Line
       const sLineButton = page.getByRole('button', { name: /S Line/i });
       await expect(sLineButton).toHaveClass(/active/);
+    });
+  });
+
+  test.describe('departing state', () => {
+    test('shows "Departing" at exact departure time', async ({ page }) => {
+      await page.addInitScript(getPlaywrightDateMockScript(TRAIN_DEPARTING));
+      await page.goto('/');
+
+      // Select Everett Station where the 6:15 AM southbound train departs
+      await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+
+      // Should show "Departing" in the hero countdown
+      await expect(page.locator('.train-hero-countdown')).toContainText('Departing');
+    });
+
+    test('shows "Departing" shortly after departure time', async ({ page }) => {
+      await page.addInitScript(getPlaywrightDateMockScript(TRAIN_JUST_DEPARTED));
+      await page.goto('/');
+
+      // Select Everett Station where the 6:15 AM southbound train departs
+      await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+
+      // Should still show "Departing" (within 30-second window)
+      await expect(page.locator('.train-hero-countdown')).toContainText('Departing');
+    });
+
+    test('applies departing urgency class', async ({ page }) => {
+      await page.addInitScript(getPlaywrightDateMockScript(TRAIN_DEPARTING));
+      await page.goto('/');
+
+      // Select Everett Station where the 6:15 AM southbound train departs
+      await page.getByRole('combobox', { name: /Your Station/i }).selectOption('Everett Station');
+
+      // Should have departing class on hero
+      await expect(page.locator('.train-hero.departing')).toBeVisible();
     });
   });
 });

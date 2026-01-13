@@ -101,6 +101,20 @@ export const TEST_TIMES = {
    * Tuesday, January 6, 2026 at 7:55 AM
    */
   TRAIN_COMFORTABLE: new Date('2026-01-06T07:55:00'),
+
+  /**
+   * Departing state test: train is at exact departure time
+   * N-Line southbound from Everett departs at 06:15 AM
+   * Tuesday, January 6, 2026 at 6:15 AM
+   */
+  TRAIN_DEPARTING: new Date('2026-01-06T06:15:00'),
+
+  /**
+   * Departing state test: 15 seconds after scheduled departure
+   * Still within 30-second departing window
+   * Tuesday, January 6, 2026 at 6:15:15 AM
+   */
+  TRAIN_JUST_DEPARTED: new Date('2026-01-06T06:15:15'),
 } as const;
 
 export type TestTimeKey = keyof typeof TEST_TIMES;

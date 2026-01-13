@@ -32,16 +32,18 @@ export function isWeekday(): boolean {
   return day >= 1 && day <= 5;
 }
 
-export function formatCountdown(minutes: number): string {
+export function formatCountdown(minutes: number, isDeparting?: boolean): string {
+  if (isDeparting) return 'Departing';
   if (minutes < 1) return 'Departing now';
   if (minutes < 60) return `in ${Math.round(minutes)} min`;
   const h = Math.floor(minutes / 60);
   const m = Math.round(minutes % 60);
-  return `in ${h}h ${m}m`;
+  return `in ${h}h ${m} min`;
 }
 
 /** Compact countdown format without "in" prefix - for hero display */
-export function formatCountdownCompact(minutes: number): string {
+export function formatCountdownCompact(minutes: number, isDeparting?: boolean): string {
+  if (isDeparting) return 'Departing';
   if (minutes < 1) return 'Now';
   if (minutes < 60) return `${Math.round(minutes)}m`;
   const h = Math.floor(minutes / 60);
