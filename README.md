@@ -29,9 +29,20 @@ Choose between the **N Line** (Everett - Seattle) and **S Line** (Seattle - Taco
 
 When multiple destinations are available, tabs let you quickly switch between them (e.g., Tacoma vs. Lakewood on the S Line).
 
-### Service Alerts
+### Smart Service Alerts
 
-Live service alerts from Sound Transit appear automatically when there are delays, schedule changes, or other disruptions affecting your route.
+Service alerts from Sound Transit are intelligently parsed and displayed in two ways:
+
+**Inline Train Status** - When an alert affects a specific train, you'll see the status right on that train:
+- Delayed trains show an orange ring with the delay time (e.g., "Running 15m late")
+- Cancelled trains show a red ring with "Cancelled" replacing the countdown
+- Secondary trains show a colored indicator dot with tooltip details
+
+![Train delay alert](docs/screenshots/train-delayed.png)
+
+**Full Alert Details** - The SERVICE ALERTS card shows the complete alert message with the reason for the delay, so you always know what's happening.
+
+![Train cancelled](docs/screenshots/train-cancelled.png)
 
 ### Works Offline
 
@@ -114,7 +125,9 @@ src/
 │   └── useLocalStorage.ts
 ├── utils/
 │   ├── time.ts          # Time formatting
-│   └── constants.ts     # Urgency thresholds
+│   ├── constants.ts     # Urgency thresholds
+│   ├── parseTrainAlerts.ts  # Alert parsing and classification
+│   └── trainNumber.ts   # Train number extraction
 └── types.ts             # TypeScript interfaces
 
 scripts/

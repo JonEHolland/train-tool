@@ -141,7 +141,7 @@ export function App() {
   const departingTrainsRef = useRef<Map<string, number>>(new Map());
 
   const routeId = typedScheduleData.schedule[currentRoute]?.routeId || '';
-  const { alerts, loading: alertsLoading, error: alertsError } = useAlerts(routeId);
+  const { trainAlerts, generalAlerts, loading: alertsLoading, error: alertsError } = useAlerts(routeId);
   const { updateAvailable, updateAndReload, dismiss } = useServiceWorkerUpdate();
 
   const stops = typedScheduleData.schedule[currentRoute]?.stops || [];
@@ -199,9 +199,18 @@ export function App() {
         };
       }).filter(direction => direction.trains.length > 0); // Remove empty directions
 
-      setTrainsByDirection(processedTrains);
+      // Attach alerts to matching trains by train number
+      const trainsWithAlerts = processedTrains.map(direction => ({
+        ...direction,
+        trains: direction.trains.map(train => ({
+          ...train,
+          alert: train.trainNumber ? trainAlerts.get(train.trainNumber) : undefined,
+        })),
+      }));
+
+      setTrainsByDirection(trainsWithAlerts);
     }
-  }, [currentRoute, currentStop]);
+  }, [currentRoute, currentStop, trainAlerts]);
 
   useEffect(() => {
     updateTrains();
@@ -235,10 +244,10 @@ export function App() {
           currentStop={currentStop}
           onStopChange={setCurrentStop}
         />
-        {/* Show alerts at top if there are any */}
-        {alerts.length > 0 && (
+        {/* Show general alerts (not train-specific) at top if there are any */}
+        {generalAlerts.length > 0 && (
           <AlertList
-            alerts={alerts}
+            alerts={generalAlerts}
             loading={alertsLoading}
             error={alertsError}
           />
