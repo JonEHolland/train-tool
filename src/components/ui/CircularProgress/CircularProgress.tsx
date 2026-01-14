@@ -1,20 +1,21 @@
-import { URGENCY_THRESHOLDS, PROGRESS_MAX_MINUTES } from '../utils/constants';
+import type { ReactNode } from 'react';
+import styles from './CircularProgress.module.css';
 
-interface CircularProgressProps {
+export interface CircularProgressProps {
   /** Progress value from 0 to 1 (1 = full, 0 = empty) */
   progress: number;
   /** Size of the component in pixels */
   size?: number;
   /** Stroke width of the ring */
   strokeWidth?: number;
-  /** Color of the progress ring */
+  /** Color of the progress ring (CSS color or variable) */
   color?: string;
   /** Whether to show the track (background ring) */
   showTrack?: boolean;
   /** Glow intensity (0 = none, higher = more glow) */
   glowIntensity?: number;
   /** Content to display inside the ring */
-  children: React.ReactNode;
+  children?: ReactNode;
 }
 
 export function CircularProgress({
@@ -43,12 +44,12 @@ export function CircularProgress({
   const filterId = `glow-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <div className="circular-progress" style={{ width: size, height: size }}>
+    <div className={styles.progress} style={{ width: size, height: size }}>
       <svg
         width={effectiveSize}
         height={effectiveSize}
         viewBox={`0 0 ${effectiveSize} ${effectiveSize}`}
-        className="circular-progress-svg"
+        className={styles.svg}
         style={{
           margin: -glowPadding,
           overflow: 'visible',
@@ -71,7 +72,7 @@ export function CircularProgress({
             fill="none"
             stroke="var(--color-surface-glass-border)"
             strokeWidth={strokeWidth}
-            className="circular-progress-track"
+            className={styles.track}
           />
         )}
 
@@ -86,7 +87,7 @@ export function CircularProgress({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          className="circular-progress-ring"
+          className={styles.ring}
           filter={`url(#${filterId})`}
           style={{
             transform: 'rotate(-90deg)',
@@ -96,27 +97,9 @@ export function CircularProgress({
       </svg>
 
       {/* Content inside the ring */}
-      <div className="circular-progress-content">
+      <div className={styles.content}>
         {children}
       </div>
     </div>
   );
-}
-
-/** Helper to calculate progress based on minutes away */
-export function calculateProgress(minutesAway: number): number {
-  if (minutesAway >= PROGRESS_MAX_MINUTES) return 1;
-  if (minutesAway <= 0) return 0;
-
-  return minutesAway / PROGRESS_MAX_MINUTES;
-}
-
-/** Helper to get color based on urgency */
-export function getUrgencyColor(minutesAway: number, isDeparting?: boolean): string {
-  // Departing trains always show danger color
-  if (isDeparting) return 'var(--color-status-danger)';
-  if (minutesAway <= URGENCY_THRESHOLDS.DANGER) return 'var(--color-status-danger)';
-  if (minutesAway <= URGENCY_THRESHOLDS.WARNING) return 'var(--color-status-warning)';
-  if (minutesAway <= URGENCY_THRESHOLDS.COMFORTABLE) return 'var(--color-status-comfortable)';
-  return 'var(--color-accent-primary)';
 }

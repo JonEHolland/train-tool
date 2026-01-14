@@ -1,0 +1,30 @@
+.progress {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.track {
+  opacity: 0.3;
+}
+
+.ring {
+  transition: stroke-dashoffset 0.5s ease-out, stroke 0.5s ease;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

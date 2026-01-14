@@ -258,9 +258,9 @@ describe('TrainList', () => {
         />
       );
 
-      // Should show tabs for Tacoma and Lakewood
-      expect(screen.getByRole('button', { name: /Tacoma/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Lakewood/i })).toBeInTheDocument();
+      // Should show tabs for Tacoma and Lakewood (role="tab" from UI Tabs component)
+      expect(screen.getByRole('tab', { name: /Tacoma/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Lakewood/i })).toBeInTheDocument();
     });
 
     it('switches direction content when tab is clicked', () => {
@@ -278,8 +278,8 @@ describe('TrainList', () => {
       // Initially shows Tacoma (first direction) - using regex due to train number span
       expect(screen.getByText(/to Tacoma Dome Station/)).toBeInTheDocument();
 
-      // Click Lakewood tab
-      fireEvent.click(screen.getByRole('button', { name: /Lakewood/i }));
+      // Click Lakewood tab (role="tab" from UI Tabs component)
+      fireEvent.click(screen.getByRole('tab', { name: /Lakewood/i }));
 
       // Should now show Lakewood
       expect(screen.getByText(/to Lakewood Station/)).toBeInTheDocument();
@@ -297,8 +297,8 @@ describe('TrainList', () => {
         />
       );
 
-      // Should not have any tab buttons
-      expect(screen.queryByRole('button', { name: /Everett/i })).not.toBeInTheDocument();
+      // Should not have any tabs when there's only one direction
+      expect(screen.queryByRole('tab', { name: /Everett/i })).not.toBeInTheDocument();
     });
   });
 
