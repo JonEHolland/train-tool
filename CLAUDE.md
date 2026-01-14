@@ -23,8 +23,9 @@ For all new features, follow this workflow:
 - Update `README.md` if the feature is user-facing
 - Update promotional screenshots in `docs/screenshots/`:
   - Inject interesting mock data showcasing full app functionality
+  - Make sure that the time displayed for the trains showcases the urgency states
   - Include alerts, trains with various urgency states, etc.
-  - Capture at mobile viewport size for hero image
+  - Capture at mobile viewport size for hero image. The hero image should showcase alerts and urgency states.
   - Screenshots should showcase the full functionality of the app
 
 ### 5. Commit & PR

@@ -53,6 +53,18 @@ export interface ScheduleData {
   generatedAt: string;
 }
 
+/** Severity level for train-specific alerts */
+export type AlertSeverity = 'delayed' | 'cancelled' | 'modified' | 'info';
+
+/** Parsed train-specific alert information */
+export interface TrainAlert {
+  trainNumber: string;
+  severity: AlertSeverity;
+  message: string;
+  delayMinutes?: number;
+  alertId: string;
+}
+
 export interface NextTrain {
   destination: string;
   time: string;
@@ -62,6 +74,8 @@ export interface NextTrain {
   departingAt?: number;
   /** Train number extracted from tripId (e.g., "1700", "1820E") */
   trainNumber?: string;
+  /** Attached alert if this train has a service alert */
+  alert?: TrainAlert;
 }
 
 export interface DirectionTrains {
