@@ -11,7 +11,7 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
   // Handle loading and error states
   if (loading) {
     return (
-      <Card className="alert-card">
+      <Card>
         <CardBody>
           <div className="loading">Loading alerts...</div>
         </CardBody>
@@ -21,7 +21,7 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
 
   if (error) {
     return (
-      <Card className="alert-card">
+      <Card>
         <CardBody>
           <div className="error">{error}</div>
         </CardBody>
@@ -31,7 +31,7 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
 
   if (alerts.length === 0) {
     return (
-      <Card className="alert-card">
+      <Card>
         <CardBody>
           <EmptyState
             title="No active alerts"
@@ -43,7 +43,7 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
   }
 
   return (
-    <Card className="alert-card">
+    <Card>
       <Carousel
         header={<Label>SERVICE ALERTS</Label>}
         showDots={alerts.length > 1}

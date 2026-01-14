@@ -466,10 +466,6 @@ body {
    Alerts
    ========================================================================== */
 
-.alert-card {
-  position: relative;
-}
-
 .alert-content {
   padding: var(--spacing-3) var(--spacing-4);
 }
