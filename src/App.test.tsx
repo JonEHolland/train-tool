@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useLocalStorage } from './useLocalStorage';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 /**
  * Tests for station persistence behavior.
@@ -12,21 +12,21 @@ import { useLocalStorage } from './useLocalStorage';
  */
 
 // Provide localStorage for test environment
-const createLocalStorageMock = () => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
-    removeItem: vi.fn((key: string) => { delete store[key]; }),
-    clear: vi.fn(() => { store = {}; }),
-  };
+let store: Record<string, string> = {};
+const localStorageMock = {
+  getItem: (key: string) => store[key] ?? null,
+  setItem: (key: string, value: string) => { store[key] = value; },
+  removeItem: (key: string) => { delete store[key]; },
+  clear: () => { store = {}; },
+  get length() { return Object.keys(store).length; },
+  key: (index: number) => Object.keys(store)[index] ?? null,
 };
 
-Object.defineProperty(window, 'localStorage', { value: createLocalStorageMock() });
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
-describe('Station Persistence with Route-Specific Storage', () => {
+describe('App - Station Persistence', () => {
   beforeEach(() => {
-    (window.localStorage as ReturnType<typeof createLocalStorageMock>).clear();
+    store = {};
   });
 
   it('stores station selections as a map keyed by route ID', () => {
