@@ -213,7 +213,7 @@ describe('AlertList', () => {
         <AlertList alerts={alerts} loading={false} error={null} />
       );
 
-      const content = container.querySelector('.alert-carousel-content');
+      const content = container.querySelector('.alert-carousel-viewport');
       expect(content).toBeInTheDocument();
 
       // Simulate swipe left (start > end by more than threshold)
@@ -229,7 +229,7 @@ describe('AlertList', () => {
         <AlertList alerts={alerts} loading={false} error={null} />
       );
 
-      const content = container.querySelector('.alert-carousel-content');
+      const content = container.querySelector('.alert-carousel-viewport');
 
       // First go to second alert
       fireEvent.click(screen.getByLabelText('Next alert'));
@@ -248,7 +248,7 @@ describe('AlertList', () => {
         <AlertList alerts={alerts} loading={false} error={null} />
       );
 
-      const content = container.querySelector('.alert-carousel-content');
+      const content = container.querySelector('.alert-carousel-viewport');
 
       // Small swipe (less than 50px threshold)
       fireEvent.touchStart(content!, { touches: [{ clientX: 200 }] });
