@@ -125,7 +125,7 @@ function getTrainsByDirection(data: ScheduleData, route: string, stopId: string)
     trains.sort((a, b) => a.minutesAway - b.minutesAway);
     result.push({
       directionName: terminus,
-      trains: trains.slice(0, 3) // Show up to 3 trains per terminus
+      trains: trains.slice(0, 4) // Show up to 4 trains per terminus
     });
   }
 
