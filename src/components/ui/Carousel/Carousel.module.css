@@ -65,11 +65,11 @@
 }
 
 .arrowPrev {
-  left: 0;
+  left: var(--spacing-2);
 }
 
 .arrowNext {
-  right: 0;
+  right: var(--spacing-2);
 }
 
 .hint {
