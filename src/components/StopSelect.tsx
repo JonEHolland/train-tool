@@ -1,4 +1,5 @@
 import type { Stop } from '../types';
+import { Select } from './ui';
 
 interface StopSelectProps {
   stops: Stop[];
@@ -7,23 +8,19 @@ interface StopSelectProps {
 }
 
 export function StopSelect({ stops, currentStop, onStopChange }: StopSelectProps) {
+  const options = stops.map(stop => ({
+    value: stop.stopId,
+    label: stop.name,
+  }));
+
   return (
     <div className="stop-select">
-      <div className="select-wrapper">
-        <label htmlFor="stopSelect" className="select-label">Your Station</label>
-        <select
-          id="stopSelect"
-          value={currentStop}
-          onChange={(e) => onStopChange(e.target.value)}
-          className="modern-select"
-        >
-          {stops.map(stop => (
-            <option key={stop.stopId} value={stop.stopId}>
-              {stop.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        label="Your Station"
+        options={options}
+        value={currentStop}
+        onChange={onStopChange}
+      />
     </div>
   );
 }

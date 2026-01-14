@@ -1,0 +1,58 @@
+.carousel {
+  position: relative;
+}
+
+.content {
+  touch-action: pan-y;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-3);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-glass-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dot:hover {
+  background: var(--color-text-tertiary);
+}
+
+.dotActive {
+  background: var(--color-accent-primary);
+  width: 20px;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  padding: var(--spacing-2);
+  z-index: 1;
+}
+
+.arrowPrev {
+  left: 0;
+}
+
+.arrowNext {
+  right: 0;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin-top: var(--spacing-2);
+}

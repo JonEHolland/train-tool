@@ -158,6 +158,110 @@ if (depMinutes >= nowMinutes) {
 
 ---
 
+## Component Library (`src/components/ui/`)
+
+The UI component library provides reusable, app-agnostic primitives. Access the dev showcase at `localhost:5173/components` during development.
+
+### Structure
+```
+src/components/ui/
+├── index.ts           # Barrel exports (tree-shakeable)
+├── tokens.ts          # Design tokens as TS constants
+├── Card/              # Each component has its own folder
+│   ├── Card.tsx
+│   ├── Card.module.css
+│   └── index.ts
+├── Button/
+├── Badge/
+├── Countdown/
+├── CircularProgress/
+└── ... (13 components total)
+```
+
+### Core Component Principles
+
+**1. App-Agnostic** - Core components must NOT contain domain-specific logic:
+- NO imports from app utilities (`constants.ts`, `time.ts`, etc.)
+- NO hardcoded domain values (urgency thresholds, train-specific text)
+- NO knowledge of trains, alerts, or schedules
+
+**2. Presentational** - Components receive all data via props:
+- Accept `children` for content rather than computing text internally
+- Accept semantic props (`variant`, `severity`) rather than raw data
+- Let the parent determine what to display and how to style it
+
+**3. Composable** - Simple, focused APIs that combine well:
+- Single responsibility per component
+- Props that work together predictably
+- No hidden side effects
+
+### When to Create App-Specific Wrappers
+
+Create wrapper components in `src/components/` when you need domain logic:
+
+```tsx
+// BAD: Domain logic in core component
+// src/components/ui/Countdown/Countdown.tsx
+export function Countdown({ minutesAway, isTomorrow }) {
+  // ❌ Hardcoded thresholds
+  const variant = minutesAway <= 2 ? 'danger' : minutesAway <= 5 ? 'warning' : 'default';
+  // ❌ Domain-specific text
+  const text = isTomorrow ? 'Tomorrow' : minutesAway < 1 ? 'Departing' : `${minutesAway}m`;
+  return <span className={variant}>{text}</span>;
+}
+
+// GOOD: Core component is presentational
+// src/components/ui/Countdown/Countdown.tsx
+export function Countdown({ children, variant = 'default', pulse, large }) {
+  return <span className={classNames(styles[variant], pulse && styles.pulse)}>{children}</span>;
+}
+
+// GOOD: App wrapper adds domain logic
+// src/components/TrainCountdown.tsx
+import { Countdown } from './ui';
+import { URGENCY_THRESHOLDS } from '../utils/constants';
+
+export function TrainCountdown({ minutesAway, isTomorrow, isDeparting }) {
+  // ✅ App-specific logic lives here
+  const variant = minutesAway <= URGENCY_THRESHOLDS.DANGER ? 'danger'
+    : minutesAway <= URGENCY_THRESHOLDS.WARNING ? 'warning'
+    : minutesAway <= URGENCY_THRESHOLDS.COMFORTABLE ? 'comfortable'
+    : 'default';
+
+  const text = isDeparting ? 'Departing' : isTomorrow ? 'Tomorrow' : `${minutesAway}m`;
+
+  return <Countdown variant={variant} pulse={isDeparting} large>{text}</Countdown>;
+}
+```
+
+### Available Components
+
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| `Card`, `CardHeader`, `CardBody` | Container | `overflow` |
+| `Button` | Actions | `variant`, `active`, `disabled` |
+| `Select` | Dropdown | `label`, `options`, `value`, `onChange` |
+| `Badge` | Status indicator | `severity`, `size`, `dot` |
+| `Label`, `Heading`, `Caption` | Typography | `level`, `muted` |
+| `SegmentedControl` | Toggle group | `options`, `value`, `onChange` |
+| `Tabs`, `TabPanel` | Tab navigation | `tabs`, `activeTab`, `onTabChange` |
+| `Banner` | Notifications | `title`, `subtitle`, `visible`, `onDismiss` |
+| `Carousel` | Swipeable content | `children` |
+| `Tooltip` | Hover hints | `content`, `position` |
+| `Countdown` | Time display | `variant`, `large`, `pulse` |
+| `CircularProgress` | Progress ring | `progress`, `color`, `size` |
+| `EmptyState` | Empty content | `title`, `subtitle`, `icon` |
+
+### Importing Components
+
+```tsx
+// Tree-shakeable imports - only used components are bundled
+import { Card, CardBody, Button, Badge } from './components/ui';
+import { colors } from './components/ui';  // Design tokens
+```
+
+---
+
 ## Design System
 
 ### Color Palette (CSS Custom Properties)
@@ -234,15 +338,24 @@ Snapshots are in `e2e/visual.spec.ts-snapshots/` - always review diffs before co
 
 ## Common Tasks
 
-### Adding a New Component
+### Adding a New UI Component (Core Library)
+1. Create folder `src/components/ui/ComponentName/`
+2. Create `ComponentName.tsx` (app-agnostic, presentational)
+3. Create `ComponentName.module.css` for scoped styles
+4. Create `index.ts` with exports
+5. Add to barrel export in `src/components/ui/index.ts`
+6. Add demo to `src/pages/ComponentShowcase.tsx`
+
+### Adding an App-Specific Component
 1. Create in `src/components/ComponentName.tsx`
-2. Add tests in `src/components/ComponentName.test.tsx`
-3. Import and use in parent component
+2. Import and compose UI primitives from `./ui`
+3. Add domain logic (thresholds, formatting, etc.)
+4. Add tests in `src/components/ComponentName.test.tsx`
 
 ### Modifying Urgency Thresholds
-1. Edit `src/utils/constants.ts`
-2. Update `getUrgencyColor()` in `src/components/CircularProgress.tsx`
-3. Update CSS classes in `src/App.css` if needed
+1. Edit `src/utils/constants.ts` (URGENCY_THRESHOLDS)
+2. Update app components that use thresholds (e.g., TrainList.tsx)
+3. UI components like CircularProgress/Countdown are presentational - they receive computed values
 4. Update visual regression snapshots
 
 ### Adding a New Alert Severity
@@ -291,19 +404,28 @@ npm run fetch-data  # Downloads latest GTFS from Sound Transit
 ```
 src/
 ├── App.tsx              # Main orchestrator
-├── App.css              # Design system + all styles
+├── App.css              # Design system + global styles
 ├── main.tsx             # Entry point + SW registration
 ├── types.ts             # TypeScript interfaces
 ├── schedule-data.json   # Embedded GTFS data
 ├── components/
+│   ├── ui/              # Core UI library (app-agnostic)
+│   │   ├── index.ts     # Barrel exports
+│   │   ├── tokens.ts    # Design tokens
+│   │   ├── Card/        # Each component has folder
+│   │   ├── Button/
+│   │   ├── Badge/
+│   │   ├── Countdown/
+│   │   ├── CircularProgress/
+│   │   └── ...          # 13 components total
 │   ├── AlertList.tsx    # Service alerts carousel
-│   ├── CircularProgress.tsx  # Countdown ring + urgency colors
 │   ├── RouteSelect.tsx  # N/S Line toggle
 │   ├── StopSelect.tsx   # Station dropdown
 │   ├── TrainList.tsx    # Main train display
 │   ├── UpdateBanner.tsx # PWA update notification
-│   ├── Disclaimer.tsx   # Footer
-│   └── EmptyState.tsx   # Reusable empty state
+│   └── Disclaimer.tsx   # Footer
+├── pages/
+│   └── ComponentShowcase.tsx  # Dev-only UI showcase
 ├── hooks/
 │   ├── useAlerts.ts     # Fetch & parse alerts (5-min polling)
 │   ├── useLocalStorage.ts  # Persistent state

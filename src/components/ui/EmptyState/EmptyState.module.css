@@ -1,0 +1,23 @@
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+}
+
+.icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-4);
+  opacity: 0.5;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}

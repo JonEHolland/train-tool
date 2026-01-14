@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import type { AlertEntity } from '../types';
-import { EmptyState } from './EmptyState';
+import { Card, CardBody, Label, Button, EmptyState } from './ui';
 
 interface AlertListProps {
   alerts: AlertEntity[];
@@ -49,34 +49,34 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
   // Handle loading and error states
   if (loading) {
     return (
-      <div className="card alert-card">
-        <div className="card-body">
+      <Card className="alert-card">
+        <CardBody>
           <div className="loading">Loading alerts...</div>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="card alert-card">
-        <div className="card-body">
+      <Card className="alert-card">
+        <CardBody>
           <div className="error">{error}</div>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     );
   }
 
   if (alerts.length === 0) {
     return (
-      <div className="card alert-card">
-        <div className="card-body">
+      <Card className="alert-card">
+        <CardBody>
           <EmptyState
             title="No active alerts"
             subtitle="All systems operating normally"
           />
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     );
   }
 
@@ -88,9 +88,9 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
   const truncatedDesc = desc.length > 200 ? `${desc.slice(0, 200)}...` : desc;
 
   return (
-    <div className="card alert-card alert-carousel">
+    <Card className="alert-card alert-carousel">
       <div className="alert-carousel-header">
-        <span className="alert-carousel-label">SERVICE ALERTS</span>
+        <Label>SERVICE ALERTS</Label>
         {alerts.length > 1 && (
           <div className="alert-dots">
             {alerts.map((_, index) => (
@@ -120,23 +120,25 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
       </div>
       {/* Arrow navigation for desktop - only show if there's an alert in that direction */}
       {alerts.length > 1 && currentIndex > 0 && (
-        <button
+        <Button
+          variant="icon"
           className="alert-nav-arrow alert-nav-prev"
           onClick={prevAlert}
           aria-label="Previous alert"
         >
           ‹
-        </button>
+        </Button>
       )}
       {alerts.length > 1 && currentIndex < alerts.length - 1 && (
-        <button
+        <Button
+          variant="icon"
           className="alert-nav-arrow alert-nav-next"
           onClick={nextAlert}
           aria-label="Next alert"
         >
           ›
-        </button>
+        </Button>
       )}
-    </div>
+    </Card>
   );
 }

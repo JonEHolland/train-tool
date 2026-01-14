@@ -92,9 +92,9 @@ test.describe('Train Schedule App', () => {
       // Switch to S-Line
       await page.getByRole('button', { name: /S Line/i }).click();
 
-      // Should show destination tabs (using class selector to avoid matching route button)
-      await expect(page.locator('.destination-tab').filter({ hasText: /Tacoma/i })).toBeVisible();
-      await expect(page.locator('.destination-tab').filter({ hasText: /Lakewood/i })).toBeVisible();
+      // Should show destination tabs (using role="tab" from UI Tabs component)
+      await expect(page.getByRole('tab', { name: /Tacoma/i })).toBeVisible();
+      await expect(page.getByRole('tab', { name: /Lakewood/i })).toBeVisible();
     });
   });
 
@@ -166,12 +166,11 @@ test.describe('Train Schedule App', () => {
       // Switch to S-Line (has multiple destinations)
       await page.getByRole('button', { name: /S Line/i }).click();
 
-      // Wait for destination tabs to appear
-      await expect(page.locator('.destination-tabs')).toBeVisible();
+      // Wait for destination tabs to appear (using role="tablist" from UI Tabs component)
+      await expect(page.getByRole('tablist')).toBeVisible();
 
-      // Click the Lakewood tab (use specific selector)
-      const lakewoodTab = page.locator('.destination-tab').filter({ hasText: /Lakewood/i });
-      await lakewoodTab.click();
+      // Click the Lakewood tab (using role="tab" from UI Tabs component)
+      await page.getByRole('tab', { name: /Lakewood/i }).click();
 
       // Should now show Lakewood direction
       await expect(page.getByText(/To Lakewood/i)).toBeVisible();

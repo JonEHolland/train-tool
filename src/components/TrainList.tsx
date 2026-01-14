@@ -1,10 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
-import type { DirectionTrains } from '../types';
+import type { DirectionTrains, NextTrain } from '../types';
 import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/time';
-import { URGENCY_THRESHOLDS } from '../utils/constants';
-import { CircularProgress, calculateProgress, getUrgencyColor } from './CircularProgress';
-import type { NextTrain } from '../types';
-import { EmptyState } from './EmptyState';
+import { URGENCY_THRESHOLDS, PROGRESS_MAX_MINUTES } from '../utils/constants';
+import { Card, CardBody, Tabs, CircularProgress, EmptyState, colors } from './ui';
+
+/**
+ * App-specific helper: Calculate progress value for the circular ring.
+ * Returns 1 (full) for 60+ minutes, decreasing to 0 for 0 minutes.
+ */
+function calculateProgress(minutesAway: number): number {
+  return Math.min(minutesAway / PROGRESS_MAX_MINUTES, 1);
+}
+
+/**
+ * App-specific helper: Get urgency color based on minutes away.
+ * Uses design tokens for consistent colors across the app.
+ */
+function getUrgencyColor(minutesAway: number, isDeparting: boolean): string {
+  if (isDeparting || minutesAway <= URGENCY_THRESHOLDS.DANGER) {
+    return colors.status.danger;
+  }
+  if (minutesAway <= URGENCY_THRESHOLDS.WARNING) {
+    return colors.status.warning;
+  }
+  if (minutesAway <= URGENCY_THRESHOLDS.COMFORTABLE) {
+    return colors.status.comfortable;
+  }
+  return colors.accent.primary;
+}
 
 interface TrainListProps {
   trainsByDirection: DirectionTrains[];
@@ -20,13 +43,13 @@ interface TrainListProps {
 function getTrainRingColor(train: NextTrain, isDeparting: boolean): string {
   // Alert severity overrides time-based urgency
   if (train.alert?.severity === 'cancelled') {
-    return 'var(--color-status-danger)';
+    return colors.status.danger;
   }
   if (train.alert?.severity === 'delayed') {
-    return 'var(--color-status-warning)';
+    return colors.status.warning;
   }
   if (train.alert?.severity === 'modified') {
-    return 'var(--color-status-info)';
+    return colors.status.info;
   }
   // Fall back to existing urgency-based color
   return getUrgencyColor(train.minutesAway, isDeparting);
@@ -59,45 +82,44 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
 
   if (isWeekend) {
     return (
-      <div className="card">
-        <div className="card-body">
+      <Card>
+        <CardBody>
           <EmptyState
             title="No trains on weekends"
             subtitle="Service resumes Monday morning"
           />
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     );
   }
 
   if (!hasStop) {
     return (
-      <div className="card">
-        <div className="card-body">
+      <Card>
+        <CardBody>
           <EmptyState
             title="Select a station"
             subtitle="Choose your departure stop above"
           />
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     );
   }
 
   if (trainsByDirection.length === 0) {
     return (
-      <div className="card">
-        <div className="card-body">
+      <Card>
+        <CardBody>
           <EmptyState
             title="No trains available"
             subtitle="Check back later for upcoming departures"
           />
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     );
   }
 
   const hasMultipleDirections = trainsByDirection.length > 1;
-  // currentDirection is already defined above for animation tracking
 
   // Get direction arrow based on direction name and current route
   const getDirectionArrow = (directionName: string) => {
@@ -120,6 +142,17 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
     }
     return '';
   };
+
+  // Build tabs for multiple directions
+  const tabs = trainsByDirection.map((direction, index) => {
+    const arrow = getDirectionArrow(direction.directionName);
+    const shortName = direction.directionName.split(' ')[0];
+    return {
+      id: String(index),
+      label: shortName,
+      icon: arrow || undefined,
+    };
+  });
 
   const renderDirection = (direction: DirectionTrains) => {
     const [firstTrain, ...otherTrains] = direction.trains;
@@ -150,7 +183,7 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
 
     const progress = firstTrain.isTomorrow ? 1 : calculateProgress(firstTrain.minutesAway);
     const ringColor = firstTrain.isTomorrow
-      ? 'var(--color-accent-primary)'
+      ? colors.accent.primary
       : getTrainRingColor(firstTrain, isDeparting);
 
     const directionArrow = getDirectionArrow(direction.directionName);
@@ -248,34 +281,22 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
   };
 
   return (
-    <div className="card train-card">
+    <Card overflow className="train-card">
       {/* Destination tabs for multiple directions */}
       {hasMultipleDirections && (
-        <div className="destination-tabs">
-          {trainsByDirection.map((direction, index) => {
-            const arrow = getDirectionArrow(direction.directionName);
-            // Extract short name (e.g., "Tacoma Dome Station" -> "Tacoma")
-            const shortName = direction.directionName.split(' ')[0];
-
-            return (
-              <button
-                key={direction.directionName}
-                className={`destination-tab ${index === activeTab ? 'active' : ''}`}
-                onClick={() => setActiveTab(index)}
-              >
-                {arrow && <span className="tab-arrow">{arrow}</span>}
-                <span className="tab-name">{shortName}</span>
-              </button>
-            );
-          })}
-        </div>
+        <Tabs
+          tabs={tabs}
+          activeTab={String(activeTab)}
+          onTabChange={(tabId) => setActiveTab(Number(tabId))}
+          className="destination-tabs"
+        />
       )}
 
-      <div className="card-body">
+      <CardBody>
         <div className="direction-content">
           {renderDirection(currentDirection)}
         </div>
-      </div>
-    </div>
+      </CardBody>
+    </Card>
   );
 }

@@ -1,4 +1,5 @@
 import type { ScheduleData } from '../types';
+import { SegmentedControl } from './ui';
 
 interface RouteSelectProps {
   scheduleData: ScheduleData;
@@ -18,23 +19,22 @@ export function RouteSelect({ scheduleData, currentRoute, onRouteChange }: Route
     return { title: name, subtitle: '' };
   };
 
+  const options = routes.map(([key, route]) => {
+    const { title, subtitle } = parseRouteName(route.name);
+    return {
+      value: key,
+      title,
+      subtitle: subtitle || undefined,
+    };
+  });
+
   return (
     <div className="route-select">
-      <div className="segmented-control">
-        {routes.map(([key, route]) => {
-          const { title, subtitle } = parseRouteName(route.name);
-          return (
-            <button
-              key={key}
-              className={`segment ${currentRoute === key ? 'active' : ''}`}
-              onClick={() => onRouteChange(key)}
-            >
-              <span className="segment-title">{title}</span>
-              {subtitle && <span className="segment-subtitle">{subtitle}</span>}
-            </button>
-          );
-        })}
-      </div>
+      <SegmentedControl
+        options={options}
+        value={currentRoute}
+        onChange={onRouteChange}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { RouteSelect } from './components/RouteSelect';
 import { StopSelect } from './components/StopSelect';
 import { TrainList } from './components/TrainList';
@@ -13,6 +13,9 @@ import { UPDATE_INTERVAL_MS, DEPARTING_DURATION_MS } from './utils/constants';
 import { extractTrainNumber } from './utils/trainNumber';
 import type { ScheduleData, NextTrain, DirectionTrains } from './types';
 import scheduleData from './schedule-data.json';
+
+// Dev-only component showcase (lazy loaded)
+const ComponentShowcase = lazy(() => import('./pages/ComponentShowcase').then(m => ({ default: m.ComponentShowcase })));
 
 const typedScheduleData = scheduleData as ScheduleData;
 
@@ -133,6 +136,15 @@ function getTrainsByDirection(data: ScheduleData, route: string, stopId: string)
 }
 
 export function App() {
+  // Dev-only: Show component showcase at /components
+  if (import.meta.env.DEV && window.location.pathname === '/components') {
+    return (
+      <Suspense fallback={<div className="container">Loading...</div>}>
+        <ComponentShowcase />
+      </Suspense>
+    );
+  }
+
   const [currentRoute, setCurrentRoute] = useLocalStorage('sounder-route', 'n-line');
   const [currentStop, setCurrentStop] = useLocalStorage('sounder-stop', '');
   const [trainsByDirection, setTrainsByDirection] = useState<DirectionTrains[]>([]);
