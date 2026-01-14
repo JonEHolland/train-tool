@@ -518,10 +518,21 @@ body {
   background: var(--color-status-danger);
 }
 
-/* Carousel content area */
-.alert-carousel-content {
-  padding: var(--spacing-3) var(--spacing-4);
+/* Carousel viewport and track for sliding animation */
+.alert-carousel-viewport {
+  overflow: hidden;
   touch-action: pan-y pinch-zoom;
+}
+
+.alert-carousel-track {
+  display: flex;
+  will-change: transform;
+}
+
+.alert-carousel-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
 }
 
 .alert-header {

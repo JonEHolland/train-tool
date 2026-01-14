@@ -10,8 +10,10 @@ interface AlertListProps {
 
 export function AlertList({ alerts, loading, error }: AlertListProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Navigation functions
   const nextAlert = useCallback(() => {
@@ -26,24 +28,38 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
     setCurrentIndex(index);
   }, []);
 
-  // Touch handlers for swipe navigation
+  // Touch handlers for swipe navigation with drag feedback
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    setIsDragging(true);
+    setDragOffset(0);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
+    if (!isDragging) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStartX.current;
+
+    // Limit drag at edges
+    if ((currentIndex === 0 && diff > 0) ||
+        (currentIndex === alerts.length - 1 && diff < 0)) {
+      setDragOffset(diff * 0.3); // Rubber band effect
+    } else {
+      setDragOffset(diff);
+    }
   };
 
   const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
+    setIsDragging(false);
     const SWIPE_THRESHOLD = 50;
 
-    if (diff > SWIPE_THRESHOLD) {
+    if (dragOffset < -SWIPE_THRESHOLD && currentIndex < alerts.length - 1) {
       nextAlert(); // Swipe left - go to next
-    } else if (diff < -SWIPE_THRESHOLD) {
+    } else if (dragOffset > SWIPE_THRESHOLD && currentIndex > 0) {
       prevAlert(); // Swipe right - go to previous
     }
+
+    setDragOffset(0);
   };
 
   // Handle loading and error states
@@ -80,12 +96,11 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
     );
   }
 
-  // Get current alert data
-  const currentEntity = alerts[currentIndex];
-  const alert = currentEntity?.alert;
-  const header = alert?.header_text?.translation?.[0]?.text || 'Alert';
-  const desc = alert?.description_text?.translation?.[0]?.text || '';
-  const truncatedDesc = desc.length > 200 ? `${desc.slice(0, 200)}...` : desc;
+  // Calculate transform for sliding effect
+  const baseOffset = -currentIndex * 100;
+  const containerWidth = containerRef.current?.offsetWidth || 300;
+  const dragPercent = (dragOffset / containerWidth) * 100;
+  const translateX = baseOffset + dragPercent;
 
   return (
     <Card className="alert-card alert-carousel">
@@ -105,18 +120,38 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
         )}
       </div>
       <div
-        className="alert-carousel-content"
+        ref={containerRef}
+        className="alert-carousel-viewport"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="alert-header">{header}</div>
-        <div className="alert-desc">{truncatedDesc}</div>
-        {alerts.length > 1 && (
-          <div className="alert-swipe-hint">
-            Swipe for more alerts ({currentIndex + 1}/{alerts.length})
-          </div>
-        )}
+        <div
+          className="alert-carousel-track"
+          style={{
+            transform: `translateX(${translateX}%)`,
+            transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+          }}
+        >
+          {alerts.map((entity, index) => {
+            const alertData = entity?.alert;
+            const header = alertData?.header_text?.translation?.[0]?.text || 'Alert';
+            const desc = alertData?.description_text?.translation?.[0]?.text || '';
+            const truncatedDesc = desc.length > 200 ? `${desc.slice(0, 200)}...` : desc;
+
+            return (
+              <div key={index} className="alert-carousel-slide">
+                <div className="alert-header">{header}</div>
+                <div className="alert-desc">{truncatedDesc}</div>
+                {alerts.length > 1 && (
+                  <div className="alert-swipe-hint">
+                    Swipe for more alerts ({index + 1}/{alerts.length})
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
       {/* Arrow navigation for desktop - only show if there's an alert in that direction */}
       {alerts.length > 1 && currentIndex > 0 && (
