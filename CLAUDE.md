@@ -5,23 +5,27 @@
 For all new features, follow this workflow:
 
 ### 1. Implementation
+- Always make sure that`main` is up to date with origin
 - Create a feature branch from `main`
 - Implement the feature with appropriate tests
+- Commit frequently at reasonable checkpoints with descriptive commit messages
 
 ### 2. User Acceptance Testing (UAT)
 - Set up test data using Playwright MCP to inject mock data
+- Explain to the user suggested test scenarios
 - Present the feature to the user for UAT testing
 - Wait for explicit UAT approval before proceeding
 
 ### 3. After UAT Approval
 - Run existing unit tests: `npm run test`
 - Run E2E tests: `npm run test:e2e`
-- Update any failing tests due to the new feature
+- Update any failing tests
 - Update visual regression snapshots if needed
+- IMPORTANT: All tests must be fixed. Do not delete failing tests. Do not hack around failures. Fix the root cause always.
 
 ### 4. Documentation & Screenshots
 - Update `README.md` if the feature is user-facing
-- Update promotional screenshots in `docs/screenshots/`:
+- Update promotional screenshots in `docs/screenshots/` if there is new UX:
   - Inject interesting mock data showcasing full app functionality
   - Make sure that the time displayed for the trains showcases the urgency states
   - Include alerts, trains with various urgency states, etc.
@@ -30,6 +34,7 @@ For all new features, follow this workflow:
 
 ### 5. Commit & PR
 - Commit all changes with a descriptive message
+- Make sure to merge main into the branch and resolve conflicts before creating the PR.
 - Push branch and create PR
 
 ## Project Structure
@@ -51,27 +56,6 @@ npm run test:e2e # Run E2E tests
 npm run build    # Build for production
 ```
 
-## Testing with Mock Data
+## Testing
+See TESTING.MD for more testing instructions. 
 
-Use Playwright MCP to inject mock alerts:
-```javascript
-await page.route('**/api.allorigins.win/**', async route => {
-  const mockAlerts = {
-    entity: [
-      {
-        id: "alert1",
-        alert: {
-          header_text: { translation: [{ text: "Alert Title", language: "en" }] },
-          description_text: { translation: [{ text: "Alert description", language: "en" }] },
-          informed_entity: [{ route_id: "SNDR" }]
-        }
-      }
-    ]
-  };
-  await route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify(mockAlerts)
-  });
-});
-```
