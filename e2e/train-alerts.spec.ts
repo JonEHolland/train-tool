@@ -96,7 +96,7 @@ test.describe('Train Alerts', () => {
       await expect(page.locator('.train-hero')).toBeVisible();
 
       // General alerts should appear in the AlertList card
-      await expect(page.locator('.alert-card')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('SERVICE ALERTS')).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('System Advisory')).toBeVisible();
       await expect(page.getByText('Please allow extra travel time')).toBeVisible();
     });
@@ -114,7 +114,7 @@ test.describe('Train Alerts', () => {
       await expect(page.locator('.train-hero')).toBeVisible();
 
       // Full alert appears in SERVICE ALERTS card (for context/reason)
-      await expect(page.locator('.alert-card')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('SERVICE ALERTS')).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Service Delay')).toBeVisible();
       await expect(page.getByText('signal issues')).toBeVisible();
 
@@ -135,14 +135,14 @@ test.describe('Train Alerts', () => {
       await expect(page.locator('.train-hero')).toBeVisible();
 
       // Full alert appears in SERVICE ALERTS card
-      await expect(page.locator('.alert-card')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('SERVICE ALERTS')).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Train Cancellation')).toBeVisible();
 
       // Hero shows "Cancelled" instead of countdown
       await expect(page.locator('.train-hero-countdown')).toContainText('Cancelled');
     });
 
-    test('no alert card when no alerts exist', async ({ page }) => {
+    test('does not show SERVICE ALERTS when no alerts exist', async ({ page }) => {
       await page.route(ALERT_ROUTE_PATTERN, route => {
         route.fulfill({
           status: 200,
@@ -151,11 +151,11 @@ test.describe('Train Alerts', () => {
         });
       });
 
-      await page.goto('/');
+      await page.goto('/', { waitUntil: 'networkidle' });
       await expect(page.locator('.train-hero')).toBeVisible();
 
-      // Should not have alert card
-      await expect(page.locator('.alert-card')).not.toBeVisible();
+      // Should not show SERVICE ALERTS header (only appears when there are alerts)
+      await expect(page.getByText('SERVICE ALERTS')).not.toBeVisible();
     });
   });
 
