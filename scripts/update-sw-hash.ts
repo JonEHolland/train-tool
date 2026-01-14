@@ -30,6 +30,16 @@ if (fs.existsSync(manifestPath)) {
   hashFiles.update(manifestContent);
 }
 
+// Hash icon files
+const iconFiles = ['icon-192.png', 'icon-512.png', 'icon.svg'];
+for (const iconFile of iconFiles) {
+  const iconPath = path.join(distDir, iconFile);
+  if (fs.existsSync(iconPath)) {
+    const iconContent = fs.readFileSync(iconPath);
+    hashFiles.update(iconContent);
+  }
+}
+
 const hash = hashFiles.digest('hex').slice(0, 8);
 
 // Update the service worker with the new cache name
