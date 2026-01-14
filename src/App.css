@@ -463,65 +463,11 @@ body {
 }
 
 /* ==========================================================================
-   Alerts - Carousel Design
+   Alerts
    ========================================================================== */
 
-.alert-card {
-  position: relative;
-}
-
-.alert-carousel {
-  overflow: hidden;
-}
-
-/* Carousel header with label and dots */
-.alert-carousel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.alert-content {
   padding: var(--spacing-3) var(--spacing-4);
-  padding-bottom: 0;
-}
-
-.alert-carousel-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--color-status-danger);
-  opacity: 0.8;
-  text-transform: uppercase;
-}
-
-/* Dot indicators */
-.alert-dots {
-  display: flex;
-  gap: 6px;
-}
-
-.alert-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 107, 107, 0.3);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.alert-dot:hover {
-  background: rgba(255, 107, 107, 0.6);
-  transform: scale(1.2);
-}
-
-.alert-dot.active {
-  background: var(--color-status-danger);
-}
-
-/* Carousel content area */
-.alert-carousel-content {
-  padding: var(--spacing-3) var(--spacing-4);
-  touch-action: pan-y pinch-zoom;
 }
 
 .alert-header {
@@ -538,59 +484,6 @@ body {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   line-height: 1.5;
-}
-
-/* Swipe hint */
-.alert-swipe-hint {
-  text-align: center;
-  font-size: 0.7rem;
-  color: var(--color-text-muted);
-  margin-top: var(--spacing-3);
-  opacity: 0.7;
-}
-
-/* Arrow navigation for desktop */
-.alert-nav-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.4);
-  border: none;
-  color: white;
-  width: 28px;
-  height: 28px;
-  font-size: 1.25rem;
-  cursor: pointer;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.2s ease, background 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.alert-carousel:hover .alert-nav-arrow {
-  opacity: 1;
-}
-
-.alert-nav-arrow:hover {
-  background: rgba(0, 0, 0, 0.6);
-}
-
-.alert-nav-prev {
-  left: 8px;
-}
-
-.alert-nav-next {
-  right: 8px;
-}
-
-/* Hide arrows on touch devices */
-@media (hover: none) {
-  .alert-nav-arrow {
-    display: none;
-  }
 }
 
 /* ==========================================================================

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Carousel } from './Carousel';
 
@@ -14,10 +14,11 @@ describe('Carousel', () => {
     expect(screen.getByText('Item 1')).toBeInTheDocument();
   });
 
-  it('does not render other items initially', () => {
+  it('renders all items for sliding (hidden via CSS overflow)', () => {
     render(<Carousel>{mockItems}</Carousel>);
-    expect(screen.queryByText('Item 2')).not.toBeInTheDocument();
-    expect(screen.queryByText('Item 3')).not.toBeInTheDocument();
+    // With sliding carousel, all items are in DOM but only one visible via CSS
+    expect(screen.getByText('Item 2')).toBeInTheDocument();
+    expect(screen.getByText('Item 3')).toBeInTheDocument();
   });
 
   it('returns null for empty children', () => {
@@ -166,6 +167,54 @@ describe('Carousel', () => {
       render(<Carousel>{[<div key="1">Only</div>]}</Carousel>);
       expect(screen.queryByText(/Swipe for more/)).not.toBeInTheDocument();
     });
+
+    it('uses custom hintText prop', () => {
+      render(<Carousel hintText="Swipe for more alerts">{mockItems}</Carousel>);
+      expect(screen.getByText('Swipe for more alerts (1/3)')).toBeInTheDocument();
+    });
+
+    it('does not show hint when showHint is false', () => {
+      render(<Carousel showHint={false}>{mockItems}</Carousel>);
+      expect(screen.queryByText(/Swipe for more/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('header slot', () => {
+    it('renders header content when provided', () => {
+      render(<Carousel header={<span>My Header</span>}>{mockItems}</Carousel>);
+      expect(screen.getByText('My Header')).toBeInTheDocument();
+    });
+
+    it('does not render header when not provided', () => {
+      const { container } = render(<Carousel showDots={false}>{[<div key="1">Only</div>]}</Carousel>);
+      // No header section when no header prop and single item (no dots)
+      expect(container.querySelector('[class*="header"]')).not.toBeInTheDocument();
+    });
+
+    it('renders header with dots in same row', () => {
+      render(<Carousel header={<span>Alerts</span>}>{mockItems}</Carousel>);
+      expect(screen.getByText('Alerts')).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /Go to item/i })).toHaveLength(3);
+    });
+  });
+
+  describe('active dot styling', () => {
+    it('marks first dot as active initially', () => {
+      const { container } = render(<Carousel>{mockItems}</Carousel>);
+      const dots = container.querySelectorAll('button[aria-label^="Go to item"]');
+      expect(dots[0].className).toContain('Active');
+      expect(dots[1].className).not.toContain('Active');
+    });
+
+    it('updates active dot when navigating', () => {
+      const { container } = render(<Carousel>{mockItems}</Carousel>);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+      const dots = container.querySelectorAll('button[aria-label^="Go to item"]');
+      expect(dots[0].className).not.toContain('Active');
+      expect(dots[1].className).toContain('Active');
+    });
   });
 
   it('forwards className prop', () => {
@@ -173,3 +222,4 @@ describe('Carousel', () => {
     expect(container.firstChild).toHaveClass('custom-carousel');
   });
 });
+

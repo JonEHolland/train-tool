@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { AlertList } from './AlertList';
 import type { AlertEntity } from '../types';
 
@@ -48,7 +48,7 @@ describe('AlertList', () => {
     });
   });
 
-  describe('single alert', () => {
+  describe('alert content', () => {
     const singleAlert = [createMockAlert('Train Delay', 'The 5:30 train is delayed by 10 minutes.')];
 
     it('displays alert header', () => {
@@ -66,108 +66,27 @@ describe('AlertList', () => {
       expect(screen.getByText('SERVICE ALERTS')).toBeInTheDocument();
     });
 
-    it('does not show navigation dots for single alert', () => {
-      render(<AlertList alerts={singleAlert} loading={false} error={null} />);
-      expect(screen.queryByRole('button', { name: /go to alert/i })).not.toBeInTheDocument();
-    });
-
-    it('does not show navigation arrows for single alert', () => {
-      render(<AlertList alerts={singleAlert} loading={false} error={null} />);
-      expect(screen.queryByLabelText('Previous alert')).not.toBeInTheDocument();
-      expect(screen.queryByLabelText('Next alert')).not.toBeInTheDocument();
-    });
-
-    it('does not show swipe hint for single alert', () => {
-      render(<AlertList alerts={singleAlert} loading={false} error={null} />);
-      expect(screen.queryByText(/Swipe for more alerts/)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('multiple alerts', () => {
-    const multipleAlerts = [
-      createMockAlert('First Alert', 'Description of first alert', 'alert-1'),
-      createMockAlert('Second Alert', 'Description of second alert', 'alert-2'),
-      createMockAlert('Third Alert', 'Description of third alert', 'alert-3'),
-    ];
-
-    it('displays first alert by default', () => {
+    it('displays all alerts in carousel', () => {
+      const multipleAlerts = [
+        createMockAlert('First Alert', 'Description of first alert', 'alert-1'),
+        createMockAlert('Second Alert', 'Description of second alert', 'alert-2'),
+        createMockAlert('Third Alert', 'Description of third alert', 'alert-3'),
+      ];
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
+
+      // With sliding carousel, all alerts are rendered in DOM
       expect(screen.getByText('First Alert')).toBeInTheDocument();
-      expect(screen.getByText('Description of first alert')).toBeInTheDocument();
-    });
-
-    it('shows navigation dots for multiple alerts', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-      const dots = screen.getAllByRole('button', { name: /go to alert/i });
-      expect(dots).toHaveLength(3);
-    });
-
-    it('shows swipe hint with current position', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-      expect(screen.getByText('Swipe for more alerts (1/3)')).toBeInTheDocument();
-    });
-
-    it('shows only next arrow on first alert', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-      expect(screen.queryByLabelText('Previous alert')).not.toBeInTheDocument();
-      expect(screen.getByLabelText('Next alert')).toBeInTheDocument();
-    });
-
-    it('navigates to next alert when next arrow is clicked', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-
-      fireEvent.click(screen.getByLabelText('Next alert'));
-
       expect(screen.getByText('Second Alert')).toBeInTheDocument();
-      expect(screen.getByText('Swipe for more alerts (2/3)')).toBeInTheDocument();
-    });
-
-    it('shows both arrows on middle alert', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-
-      fireEvent.click(screen.getByLabelText('Next alert'));
-
-      expect(screen.getByLabelText('Previous alert')).toBeInTheDocument();
-      expect(screen.getByLabelText('Next alert')).toBeInTheDocument();
-    });
-
-    it('navigates to previous alert when previous arrow is clicked', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-
-      fireEvent.click(screen.getByLabelText('Next alert'));
-      fireEvent.click(screen.getByLabelText('Previous alert'));
-
-      expect(screen.getByText('First Alert')).toBeInTheDocument();
-    });
-
-    it('shows only previous arrow on last alert', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-
-      // Navigate to last alert
-      fireEvent.click(screen.getByLabelText('Next alert'));
-      fireEvent.click(screen.getByLabelText('Next alert'));
-
-      expect(screen.getByLabelText('Previous alert')).toBeInTheDocument();
-      expect(screen.queryByLabelText('Next alert')).not.toBeInTheDocument();
-    });
-
-    it('navigates to specific alert when dot is clicked', () => {
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-
-      const dots = screen.getAllByRole('button', { name: /go to alert/i });
-      fireEvent.click(dots[2]); // Click third dot
-
       expect(screen.getByText('Third Alert')).toBeInTheDocument();
-      expect(screen.getByText('Swipe for more alerts (3/3)')).toBeInTheDocument();
     });
 
-    it('marks active dot correctly', () => {
-      const { container } = render(
-        <AlertList alerts={multipleAlerts} loading={false} error={null} />
-      );
-
-      const activeDot = container.querySelector('.alert-dot.active');
-      expect(activeDot).toBeInTheDocument();
+    it('passes custom hint text to carousel', () => {
+      const multipleAlerts = [
+        createMockAlert('First', 'Desc 1', 'a1'),
+        createMockAlert('Second', 'Desc 2', 'a2'),
+      ];
+      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
+      expect(screen.getByText('Swipe for more alerts (1/2)')).toBeInTheDocument();
     });
   });
 
@@ -199,64 +118,6 @@ describe('AlertList', () => {
       render(<AlertList alerts={alert} loading={false} error={null} />);
 
       expect(screen.getByText(exactDescription)).toBeInTheDocument();
-    });
-  });
-
-  describe('swipe navigation', () => {
-    const alerts = [
-      createMockAlert('First', 'First desc', 'a1'),
-      createMockAlert('Second', 'Second desc', 'a2'),
-    ];
-
-    it('navigates to next alert on swipe left', () => {
-      const { container } = render(
-        <AlertList alerts={alerts} loading={false} error={null} />
-      );
-
-      const content = container.querySelector('.alert-carousel-content');
-      expect(content).toBeInTheDocument();
-
-      // Simulate swipe left (start > end by more than threshold)
-      fireEvent.touchStart(content!, { touches: [{ clientX: 200 }] });
-      fireEvent.touchMove(content!, { touches: [{ clientX: 100 }] });
-      fireEvent.touchEnd(content!);
-
-      expect(screen.getByText('Second')).toBeInTheDocument();
-    });
-
-    it('navigates to previous alert on swipe right', () => {
-      const { container } = render(
-        <AlertList alerts={alerts} loading={false} error={null} />
-      );
-
-      const content = container.querySelector('.alert-carousel-content');
-
-      // First go to second alert
-      fireEvent.click(screen.getByLabelText('Next alert'));
-      expect(screen.getByText('Second')).toBeInTheDocument();
-
-      // Swipe right (end > start by more than threshold)
-      fireEvent.touchStart(content!, { touches: [{ clientX: 100 }] });
-      fireEvent.touchMove(content!, { touches: [{ clientX: 200 }] });
-      fireEvent.touchEnd(content!);
-
-      expect(screen.getByText('First')).toBeInTheDocument();
-    });
-
-    it('does not navigate on small swipe', () => {
-      const { container } = render(
-        <AlertList alerts={alerts} loading={false} error={null} />
-      );
-
-      const content = container.querySelector('.alert-carousel-content');
-
-      // Small swipe (less than 50px threshold)
-      fireEvent.touchStart(content!, { touches: [{ clientX: 200 }] });
-      fireEvent.touchMove(content!, { touches: [{ clientX: 180 }] });
-      fireEvent.touchEnd(content!);
-
-      // Should still be on first alert
-      expect(screen.getByText('First')).toBeInTheDocument();
     });
   });
 

@@ -125,7 +125,7 @@ function getTrainsByDirection(data: ScheduleData, route: string, stopId: string)
     trains.sort((a, b) => a.minutesAway - b.minutesAway);
     result.push({
       directionName: terminus,
-      trains: trains.slice(0, 3) // Show up to 3 trains per terminus
+      trains: trains.slice(0, 4) // Show up to 4 trains per terminus
     });
   }
 
@@ -146,7 +146,15 @@ export function App() {
   }
 
   const [currentRoute, setCurrentRoute] = useLocalStorage('sounder-route', 'n-line');
-  const [currentStop, setCurrentStop] = useLocalStorage('sounder-stop', '');
+  const [stopsMap, setStopsMap] = useLocalStorage<Record<string, string>>('sounder-stops', {});
+
+  // Derive currentStop from the map for the current route
+  const currentStop = stopsMap[currentRoute] || '';
+
+  // Update station selection for current route
+  const handleStopChange = useCallback((stopId: string) => {
+    setStopsMap(prev => ({ ...prev, [currentRoute]: stopId }));
+  }, [currentRoute, setStopsMap]);
   const [trainsByDirection, setTrainsByDirection] = useState<DirectionTrains[]>([]);
 
   // Track when trains enter "Departing" state (key: direction-departureTime, value: timestamp)
@@ -160,12 +168,12 @@ export function App() {
 
   useEffect(() => {
     if (stops.length > 0 && !currentStop) {
-      setCurrentStop(stops[0].stopId);
+      handleStopChange(stops[0].stopId);
     } else if (currentStop && stops.length > 0 && !stops.some(s => s.stopId === currentStop)) {
       // If stored stop isn't valid for this route, reset to first stop
-      setCurrentStop(stops[0].stopId);
+      handleStopChange(stops[0].stopId);
     }
-  }, [stops, currentStop, setCurrentStop]);
+  }, [stops, currentStop, handleStopChange]);
 
   const updateTrains = useCallback(() => {
     if (currentStop) {
@@ -230,10 +238,9 @@ export function App() {
     return () => clearInterval(interval);
   }, [updateTrains]);
 
+  // Route change only updates route - station auto-restores from stopsMap
   const handleRouteChange = (route: string) => {
     setCurrentRoute(route);
-    const newStops = typedScheduleData.schedule[route]?.stops || [];
-    setCurrentStop(newStops.length > 0 ? newStops[0].stopId : '');
   };
 
   const weekend = !isWeekday();
@@ -254,7 +261,7 @@ export function App() {
         <StopSelect
           stops={stops}
           currentStop={currentStop}
-          onStopChange={setCurrentStop}
+          onStopChange={handleStopChange}
         />
         {/* Show general alerts (not train-specific) at top if there are any */}
         {generalAlerts.length > 0 && (

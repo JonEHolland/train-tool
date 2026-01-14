@@ -1,16 +1,23 @@
 .carousel {
   position: relative;
+  overflow: hidden;
 }
 
-.content {
-  touch-action: pan-y;
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  padding-bottom: 0;
+}
+
+.headerSlot {
+  flex: 1;
 }
 
 .dots {
   display: flex;
-  justify-content: center;
   gap: var(--spacing-2);
-  margin-top: var(--spacing-3);
 }
 
 .dot {
@@ -19,18 +26,34 @@
   padding: 0;
   border: none;
   border-radius: var(--radius-full);
-  background: var(--color-surface-glass-border);
+  background: rgba(255, 107, 107, 0.4);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .dot:hover {
-  background: var(--color-text-tertiary);
+  background: rgba(255, 107, 107, 0.6);
 }
 
 .dotActive {
-  background: var(--color-accent-primary);
-  width: 20px;
+  background: var(--color-status-danger);
+}
+
+.viewport {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
+.track {
+  display: flex;
+  will-change: transform;
+}
+
+.slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  padding: 0 var(--spacing-8);
 }
 
 .arrow {
@@ -43,16 +66,16 @@
 }
 
 .arrowPrev {
-  left: 0;
+  left: var(--spacing-2);
 }
 
 .arrowNext {
-  right: 0;
+  right: var(--spacing-2);
 }
 
 .hint {
   font-size: 0.75rem;
   color: var(--color-text-tertiary);
   text-align: center;
-  margin-top: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
 }
