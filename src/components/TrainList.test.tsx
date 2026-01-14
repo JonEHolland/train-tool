@@ -142,7 +142,8 @@ describe('TrainList', () => {
         />
       );
 
-      expect(screen.getByText('To Everett Station')).toBeInTheDocument();
+      // Text includes "to" (lowercase) before the station name
+      expect(screen.getByText(/to Everett Station/)).toBeInTheDocument();
     });
 
     it('shows hero countdown for first train', () => {
@@ -274,14 +275,14 @@ describe('TrainList', () => {
         />
       );
 
-      // Initially shows Tacoma (first direction)
-      expect(screen.getByText('To Tacoma Dome Station')).toBeInTheDocument();
+      // Initially shows Tacoma (first direction) - uses lowercase "to"
+      expect(screen.getByText(/to Tacoma Dome Station/)).toBeInTheDocument();
 
       // Click Lakewood tab
       fireEvent.click(screen.getByRole('button', { name: /Lakewood/i }));
 
-      // Should now show Lakewood
-      expect(screen.getByText('To Lakewood Station')).toBeInTheDocument();
+      // Should now show Lakewood - uses lowercase "to"
+      expect(screen.getByText(/to Lakewood Station/)).toBeInTheDocument();
     });
 
     it('does not show tabs for single direction', () => {
