@@ -68,13 +68,13 @@ describe('AlertList', () => {
 
     it('does not show navigation dots for single alert', () => {
       render(<AlertList alerts={singleAlert} loading={false} error={null} />);
-      expect(screen.queryByRole('button', { name: /go to alert/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /go to item/i })).not.toBeInTheDocument();
     });
 
     it('does not show navigation arrows for single alert', () => {
       render(<AlertList alerts={singleAlert} loading={false} error={null} />);
-      expect(screen.queryByLabelText('Previous alert')).not.toBeInTheDocument();
-      expect(screen.queryByLabelText('Next alert')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Previous')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Next')).not.toBeInTheDocument();
     });
 
     it('does not show swipe hint for single alert', () => {
@@ -98,7 +98,7 @@ describe('AlertList', () => {
 
     it('shows navigation dots for multiple alerts', () => {
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-      const dots = screen.getAllByRole('button', { name: /go to alert/i });
+      const dots = screen.getAllByRole('button', { name: /go to item/i });
       expect(dots).toHaveLength(3);
     });
 
@@ -109,55 +109,54 @@ describe('AlertList', () => {
 
     it('shows only next arrow on first alert', () => {
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
-      expect(screen.queryByLabelText('Previous alert')).not.toBeInTheDocument();
-      expect(screen.getByLabelText('Next alert')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Previous')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Next')).toBeInTheDocument();
     });
 
     it('navigates to next alert when next arrow is clicked', () => {
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
 
-      fireEvent.click(screen.getByLabelText('Next alert'));
+      fireEvent.click(screen.getByLabelText('Next'));
 
-      expect(screen.getByText('Second Alert')).toBeInTheDocument();
+      // With sliding carousel, all alerts are in DOM - check hint text changed
       expect(screen.getByText('Swipe for more alerts (2/3)')).toBeInTheDocument();
     });
 
     it('shows both arrows on middle alert', () => {
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
 
-      fireEvent.click(screen.getByLabelText('Next alert'));
+      fireEvent.click(screen.getByLabelText('Next'));
 
-      expect(screen.getByLabelText('Previous alert')).toBeInTheDocument();
-      expect(screen.getByLabelText('Next alert')).toBeInTheDocument();
+      expect(screen.getByLabelText('Previous')).toBeInTheDocument();
+      expect(screen.getByLabelText('Next')).toBeInTheDocument();
     });
 
     it('navigates to previous alert when previous arrow is clicked', () => {
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
 
-      fireEvent.click(screen.getByLabelText('Next alert'));
-      fireEvent.click(screen.getByLabelText('Previous alert'));
+      fireEvent.click(screen.getByLabelText('Next'));
+      fireEvent.click(screen.getByLabelText('Previous'));
 
-      expect(screen.getByText('First Alert')).toBeInTheDocument();
+      expect(screen.getByText('Swipe for more alerts (1/3)')).toBeInTheDocument();
     });
 
     it('shows only previous arrow on last alert', () => {
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
 
       // Navigate to last alert
-      fireEvent.click(screen.getByLabelText('Next alert'));
-      fireEvent.click(screen.getByLabelText('Next alert'));
+      fireEvent.click(screen.getByLabelText('Next'));
+      fireEvent.click(screen.getByLabelText('Next'));
 
-      expect(screen.getByLabelText('Previous alert')).toBeInTheDocument();
-      expect(screen.queryByLabelText('Next alert')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Previous')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Next')).not.toBeInTheDocument();
     });
 
     it('navigates to specific alert when dot is clicked', () => {
       render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
 
-      const dots = screen.getAllByRole('button', { name: /go to alert/i });
+      const dots = screen.getAllByRole('button', { name: /go to item/i });
       fireEvent.click(dots[2]); // Click third dot
 
-      expect(screen.getByText('Third Alert')).toBeInTheDocument();
       expect(screen.getByText('Swipe for more alerts (3/3)')).toBeInTheDocument();
     });
 
@@ -166,8 +165,9 @@ describe('AlertList', () => {
         <AlertList alerts={multipleAlerts} loading={false} error={null} />
       );
 
-      const activeDot = container.querySelector('.alert-dot.active');
-      expect(activeDot).toBeInTheDocument();
+      // Check for module CSS class pattern for active dot
+      const dots = container.querySelectorAll('button[aria-label^="Go to item"]');
+      expect(dots[0].className).toContain('Active');
     });
   });
 
@@ -209,54 +209,49 @@ describe('AlertList', () => {
     ];
 
     it('navigates to next alert on swipe left', () => {
-      const { container } = render(
-        <AlertList alerts={alerts} loading={false} error={null} />
-      );
+      render(<AlertList alerts={alerts} loading={false} error={null} />);
 
-      const content = container.querySelector('.alert-carousel-viewport');
+      const content = screen.getByTestId('carousel-content');
       expect(content).toBeInTheDocument();
 
       // Simulate swipe left (start > end by more than threshold)
-      fireEvent.touchStart(content!, { touches: [{ clientX: 200 }] });
-      fireEvent.touchMove(content!, { touches: [{ clientX: 100 }] });
-      fireEvent.touchEnd(content!);
+      fireEvent.touchStart(content, { touches: [{ clientX: 200 }] });
+      fireEvent.touchMove(content, { touches: [{ clientX: 100 }] });
+      fireEvent.touchEnd(content);
 
-      expect(screen.getByText('Second')).toBeInTheDocument();
+      // Check hint text changed to indicate navigation
+      expect(screen.getByText('Swipe for more alerts (2/2)')).toBeInTheDocument();
     });
 
     it('navigates to previous alert on swipe right', () => {
-      const { container } = render(
-        <AlertList alerts={alerts} loading={false} error={null} />
-      );
+      render(<AlertList alerts={alerts} loading={false} error={null} />);
 
-      const content = container.querySelector('.alert-carousel-viewport');
+      const content = screen.getByTestId('carousel-content');
 
       // First go to second alert
-      fireEvent.click(screen.getByLabelText('Next alert'));
-      expect(screen.getByText('Second')).toBeInTheDocument();
+      fireEvent.click(screen.getByLabelText('Next'));
+      expect(screen.getByText('Swipe for more alerts (2/2)')).toBeInTheDocument();
 
       // Swipe right (end > start by more than threshold)
-      fireEvent.touchStart(content!, { touches: [{ clientX: 100 }] });
-      fireEvent.touchMove(content!, { touches: [{ clientX: 200 }] });
-      fireEvent.touchEnd(content!);
+      fireEvent.touchStart(content, { touches: [{ clientX: 100 }] });
+      fireEvent.touchMove(content, { touches: [{ clientX: 200 }] });
+      fireEvent.touchEnd(content);
 
-      expect(screen.getByText('First')).toBeInTheDocument();
+      expect(screen.getByText('Swipe for more alerts (1/2)')).toBeInTheDocument();
     });
 
     it('does not navigate on small swipe', () => {
-      const { container } = render(
-        <AlertList alerts={alerts} loading={false} error={null} />
-      );
+      render(<AlertList alerts={alerts} loading={false} error={null} />);
 
-      const content = container.querySelector('.alert-carousel-viewport');
+      const content = screen.getByTestId('carousel-content');
 
       // Small swipe (less than 50px threshold)
-      fireEvent.touchStart(content!, { touches: [{ clientX: 200 }] });
-      fireEvent.touchMove(content!, { touches: [{ clientX: 180 }] });
-      fireEvent.touchEnd(content!);
+      fireEvent.touchStart(content, { touches: [{ clientX: 200 }] });
+      fireEvent.touchMove(content, { touches: [{ clientX: 180 }] });
+      fireEvent.touchEnd(content);
 
       // Should still be on first alert
-      expect(screen.getByText('First')).toBeInTheDocument();
+      expect(screen.getByText('Swipe for more alerts (1/2)')).toBeInTheDocument();
     });
   });
 

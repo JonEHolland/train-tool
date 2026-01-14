@@ -14,10 +14,11 @@ describe('Carousel', () => {
     expect(screen.getByText('Item 1')).toBeInTheDocument();
   });
 
-  it('does not render other items initially', () => {
+  it('renders all items for sliding (hidden via CSS overflow)', () => {
     render(<Carousel>{mockItems}</Carousel>);
-    expect(screen.queryByText('Item 2')).not.toBeInTheDocument();
-    expect(screen.queryByText('Item 3')).not.toBeInTheDocument();
+    // With sliding carousel, all items are in DOM but only one visible via CSS
+    expect(screen.getByText('Item 2')).toBeInTheDocument();
+    expect(screen.getByText('Item 3')).toBeInTheDocument();
   });
 
   it('returns null for empty children', () => {
