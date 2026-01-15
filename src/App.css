@@ -50,6 +50,11 @@
   --shadow-glow-danger: 0 0 20px rgba(255, 107, 107, 0.3);
   --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 
+  /* Overlays */
+  --color-overlay-dark: rgba(10, 22, 40, 0.4);
+  --color-overlay-light: rgba(255, 255, 255, 0.03);
+  --color-overlay-light-active: rgba(255, 255, 255, 0.05);
+
   /* Animations */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -108,7 +113,7 @@ body {
 
 /* Destination Tabs Container - extends UI Tabs component */
 .destination-tabs {
-  background: rgba(10, 22, 40, 0.4);
+  background: var(--color-overlay-dark);
   border-bottom: 1px solid var(--color-surface-glass-border);
 }
 
@@ -163,6 +168,7 @@ body {
   justify-content: center;
   padding: var(--spacing-4) 0;
   margin-bottom: var(--spacing-4);
+  contain: layout style paint;
 }
 
 .train-hero-inner {
@@ -275,14 +281,15 @@ body {
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
   cursor: default;
+  contain: layout style paint;
 }
 
 .train-secondary-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-overlay-light);
 }
 
 .train-secondary-item:active {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-overlay-light-active);
   transform: scale(0.995);
 }
 
