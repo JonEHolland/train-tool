@@ -32,21 +32,41 @@ export function isWeekday(): boolean {
   return day >= 1 && day <= 5;
 }
 
-export function formatCountdown(minutes: number, isDeparting?: boolean): string {
-  if (isDeparting) return 'Departing';
-  if (minutes < 1) return 'Departing now';
-  if (minutes < 60) return `in ${Math.round(minutes)} min`;
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
-  return `in ${h}h ${m} min`;
+interface FormatCountdownOptions {
+  /** Use compact format without "in" prefix (for hero display) */
+  compact?: boolean;
 }
 
-/** Compact countdown format without "in" prefix - for hero display */
-export function formatCountdownCompact(minutes: number, isDeparting?: boolean): string {
+/**
+ * Format a countdown duration for display.
+ * @param minutes - Minutes until departure
+ * @param isDeparting - Whether the train is currently departing
+ * @param options - Formatting options
+ */
+export function formatCountdown(
+  minutes: number,
+  isDeparting?: boolean,
+  options: FormatCountdownOptions = {}
+): string {
+  const { compact = false } = options;
+
   if (isDeparting) return 'Departing';
-  if (minutes < 1) return 'Now';
-  if (minutes < 60) return `${Math.round(minutes)}m`;
+  if (minutes < 1) return compact ? 'Now' : 'Departing now';
+
   const h = Math.floor(minutes / 60);
   const m = Math.round(minutes % 60);
-  return `${h}h ${m}m`;
+
+  if (minutes < 60) {
+    return compact ? `${Math.round(minutes)}m` : `in ${Math.round(minutes)} min`;
+  }
+
+  return compact ? `${h}h ${m}m` : `in ${h}h ${m} min`;
+}
+
+/**
+ * Compact countdown format without "in" prefix - for hero display.
+ * @deprecated Use formatCountdown(minutes, isDeparting, { compact: true }) instead.
+ */
+export function formatCountdownCompact(minutes: number, isDeparting?: boolean): string {
+  return formatCountdown(minutes, isDeparting, { compact: true });
 }

@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { getPlaywrightDateMockScript } from '../tests/fixtures/time';
+import { getPlaywrightDateMockScript, TEST_TIME_STRINGS } from '../tests/fixtures/time';
 
-// Test time within schedule data's valid range
-const WEEKDAY_MORNING = '2026-01-06T07:30:00'; // Tuesday
+// Destructure test times for cleaner usage
+const { WEEKDAY_MORNING } = TEST_TIME_STRINGS;
 
 // Mock alert responses for testing
 const MOCK_ALERT_RESPONSE_GENERAL = {

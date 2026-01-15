@@ -1,18 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { getPlaywrightDateMockScript } from '../tests/fixtures/time';
+import { getPlaywrightDateMockScript, TEST_TIME_STRINGS } from '../tests/fixtures/time';
 
-// Test times as ISO strings
-// These dates fall within the schedule data's valid range (20260102 - 20260116)
-const WEEKDAY_MORNING = '2026-01-06T07:30:00';    // Tuesday
-const WEEKDAY_EVENING = '2026-01-06T17:30:00';    // Tuesday
-const SATURDAY_AFTERNOON = '2026-01-10T14:00:00'; // Saturday
-
-// Urgency state test times (based on 6:15 AM Everett -> Seattle train)
-const TRAIN_DEPARTING = '2026-01-06T06:15:00';    // Exact departure time (DEPARTING state)
-const TRAIN_DANGER = '2026-01-06T06:14:00';       // 1 minute before (DANGER state - red)
-const TRAIN_WARNING = '2026-01-06T06:12:00';      // 3 minutes before (WARNING state - burnt orange)
-const TRAIN_COMFORTABLE = '2026-01-06T06:05:00';  // 10 minutes before (COMFORTABLE state - yellow)
-const TRAIN_NORMAL = '2026-01-06T05:45:00';       // 30 minutes before (NORMAL state - teal)
+// Destructure test times for cleaner usage
+const {
+  WEEKDAY_MORNING,
+  WEEKDAY_EVENING,
+  SATURDAY_AFTERNOON,
+  TRAIN_DEPARTING,
+  TRAIN_DANGER,
+  TRAIN_WARNING,
+  TRAIN_COMFORTABLE,
+  TRAIN_NORMAL,
+} = TEST_TIME_STRINGS;
 
 // Mock empty alerts response to ensure consistent screenshots
 const EMPTY_ALERTS_RESPONSE = { entity: [] };

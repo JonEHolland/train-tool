@@ -1,14 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { getPlaywrightDateMockScript } from '../tests/fixtures/time';
+import { getPlaywrightDateMockScript, TEST_TIME_STRINGS } from '../tests/fixtures/time';
 
-// Test times as ISO strings for Playwright injection
-// These dates fall within the schedule data's valid range (20260102 - 20260116)
-const WEEKDAY_MORNING = '2026-01-06T07:30:00';    // Tuesday
-const WEEKDAY_EVENING = '2026-01-06T17:30:00';    // Tuesday
-const SATURDAY_AFTERNOON = '2026-01-10T14:00:00'; // Saturday
-const WEEKDAY_LATE_NIGHT = '2026-01-06T23:30:00'; // Tuesday
-const TRAIN_DEPARTING = '2026-01-06T06:15:00';    // Exact departure time for 6:15 AM train from Everett
-const TRAIN_JUST_DEPARTED = '2026-01-06T06:15:15'; // 15s after departure
+// Destructure test times for cleaner usage
+const {
+  WEEKDAY_MORNING,
+  WEEKDAY_EVENING,
+  SATURDAY_AFTERNOON,
+  WEEKDAY_LATE_NIGHT,
+  TRAIN_DEPARTING,
+  TRAIN_JUST_DEPARTED,
+} = TEST_TIME_STRINGS;
 
 test.describe('Train Schedule App', () => {
   test.describe('weekday morning', () => {

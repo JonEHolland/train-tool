@@ -120,6 +120,30 @@ export const TEST_TIMES = {
 export type TestTimeKey = keyof typeof TEST_TIMES;
 
 /**
+ * ISO string versions of TEST_TIMES for use in E2E tests with Playwright.
+ * These are used with getPlaywrightDateMockScript() for browser time mocking.
+ */
+export const TEST_TIME_STRINGS = {
+  WEEKDAY_MORNING: '2026-01-06T07:30:00',
+  WEEKDAY_MIDDAY: '2026-01-06T12:00:00',
+  WEEKDAY_EVENING: '2026-01-06T17:30:00',
+  WEEKDAY_LATE_NIGHT: '2026-01-06T23:30:00',
+  SATURDAY_AFTERNOON: '2026-01-10T14:00:00',
+  SUNDAY_MORNING: '2026-01-11T09:00:00',
+  JUST_BEFORE_MIDNIGHT: '2026-01-06T23:59:00',
+  JUST_AFTER_MIDNIGHT: '2026-01-07T00:01:00',
+  TRAIN_IMMINENT: '2026-01-06T08:04:00',
+  TRAIN_SOON: '2026-01-06T08:02:00',
+  TRAIN_COMFORTABLE: '2026-01-06T07:55:00',
+  TRAIN_DEPARTING: '2026-01-06T06:15:00',
+  TRAIN_JUST_DEPARTED: '2026-01-06T06:15:15',
+  // Additional urgency test times for visual regression
+  TRAIN_DANGER: '2026-01-06T06:14:00',    // 1 minute before 6:15 AM train
+  TRAIN_WARNING: '2026-01-06T06:12:00',   // 3 minutes before
+  TRAIN_NORMAL: '2026-01-06T05:45:00',    // 30 minutes before
+} as const;
+
+/**
  * Helper to get minutes since midnight for a given test time.
  * Useful for calculating expected values in tests.
  */

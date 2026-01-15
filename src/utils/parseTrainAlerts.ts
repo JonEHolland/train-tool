@@ -23,6 +23,26 @@ const TRAIN_NUMBER_PATTERNS = [
 ];
 
 /**
+ * Severity ranking - higher number = more severe.
+ * Used for comparing alert severity when multiple alerts affect the same train.
+ */
+export const SEVERITY_RANK: Record<AlertSeverity, number> = {
+  cancelled: 4,
+  delayed: 3,
+  modified: 2,
+  info: 1,
+} as const;
+
+/**
+ * Severity order from most to least severe, derived from SEVERITY_RANK.
+ */
+const SEVERITY_ORDER: AlertSeverity[] = (
+  Object.entries(SEVERITY_RANK) as [AlertSeverity, number][]
+)
+  .sort((a, b) => b[1] - a[1])
+  .map(([severity]) => severity);
+
+/**
  * Keywords to classify alert severity.
  * Order matters: cancelled is most severe, then delayed, then modified, then info (default).
  */
@@ -75,9 +95,7 @@ export function classifySeverity(text: string): AlertSeverity {
   const lowerText = text.toLowerCase();
 
   // Check in order of severity (most severe first)
-  const severityOrder: AlertSeverity[] = ['cancelled', 'delayed', 'modified', 'info'];
-
-  for (const severity of severityOrder) {
+  for (const severity of SEVERITY_ORDER) {
     const keywords = SEVERITY_KEYWORDS[severity];
     for (const keyword of keywords) {
       if (lowerText.includes(keyword)) {
@@ -156,14 +174,8 @@ export function parseTrainAlerts(alerts: AlertEntity[]): ParsedAlerts {
       for (const trainNumber of trainNumbers) {
         // If train already has an alert, keep the more severe one
         const existing = trainAlerts.get(trainNumber);
-        const severityRank: Record<AlertSeverity, number> = {
-          cancelled: 4,
-          delayed: 3,
-          modified: 2,
-          info: 1,
-        };
 
-        if (!existing || severityRank[severity] > severityRank[existing.severity]) {
+        if (!existing || SEVERITY_RANK[severity] > SEVERITY_RANK[existing.severity]) {
           trainAlerts.set(trainNumber, {
             trainNumber,
             severity,

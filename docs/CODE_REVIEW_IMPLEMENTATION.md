@@ -87,173 +87,30 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
 - **Change:** Added CSS variables for overlay colors and replaced hardcoded rgba values
 - **Impact:** Consistent color management through CSS custom properties
 
+### Priority 5: Code Quality & DRY Violations (Completed)
+
+#### 5.1 Extract SEVERITY_RANK Constant (Completed)
+- **Change:** `src/utils/parseTrainAlerts.ts` - Extracted `SEVERITY_RANK` constant and derived `SEVERITY_ORDER` from it
+- **Impact:** Single source of truth for alert severity ranking
+
+#### 5.2 Deduplicate Test Times (Completed)
+- **Change:** Added `TEST_TIME_STRINGS` export to `tests/fixtures/time.ts`
+- **Updated:** `e2e/train-schedule.spec.ts`, `e2e/visual.spec.ts`, `e2e/train-alerts.spec.ts` to use centralized constants
+- **Impact:** Single source of truth for test time values
+
+#### 5.3 Consolidate Countdown Formatting (Completed)
+- **Change:** `src/utils/time.ts` - Consolidated `formatCountdown` with options parameter, deprecated `formatCountdownCompact`
+- **Impact:** DRY formatting logic with backwards-compatible wrapper
+
+#### 5.4 Fix Direction Arrow Logic (Completed)
+- **Change:** Created `src/utils/trainDirection.ts` with documented station lists and `getDirectionArrow` function
+- **Tests:** Added 18 unit tests in `src/utils/trainDirection.test.ts`
+- **Updated:** `src/components/TrainList.tsx` to import from utility
+- **Impact:** Clearer station classification with comprehensive test coverage
+
 ---
 
 ## Remaining Items
-
-### Priority 5: Code Quality & DRY Violations
-
-#### 5.1 Extract SEVERITY_RANK Constant
-- **File:** `src/utils/parseTrainAlerts.ts`
-
-**Current code has duplication:**
-```typescript
-// Lines 29-34: SEVERITY_KEYWORDS ordering implies rank
-const SEVERITY_KEYWORDS: Record<AlertSeverity, string[]> = {
-  cancelled: [...],
-  delayed: [...],
-  modified: [...],
-  info: [...],
-};
-
-// Lines 159-164: Explicit rank
-const severityRank: Record<AlertSeverity, number> = {
-  cancelled: 4,
-  delayed: 3,
-  modified: 2,
-  info: 1,
-};
-```
-
-**Fix:** Extract to a single constant at the top of the file:
-```typescript
-/** Severity ranking - higher number = more severe */
-export const SEVERITY_RANK: Record<AlertSeverity, number> = {
-  cancelled: 4,
-  delayed: 3,
-  modified: 2,
-  info: 1,
-} as const;
-```
-
-Then use `SEVERITY_RANK` in the comparison function instead of the inline object.
-
-**Tests:** Existing parseTrainAlerts tests should pass. Add a test verifying severity ordering if not already covered.
-
----
-
-#### 5.2 Deduplicate Test Times
-- **Files:**
-  - `tests/fixtures/time.ts` - Has `TEST_TIMES` as Date objects
-  - `e2e/train-schedule.spec.ts` - Has hardcoded ISO strings like `'2026-01-06T07:30:00'`
-  - `e2e/visual.spec.ts` - Has same hardcoded ISO strings
-
-**Fix:** Export ISO strings from fixtures:
-```typescript
-// In tests/fixtures/time.ts, add:
-export const TEST_TIME_STRINGS = {
-  WEEKDAY_MORNING: '2026-01-06T07:30:00',
-  WEEKDAY_EVENING: '2026-01-06T17:30:00',
-  SATURDAY_AFTERNOON: '2026-01-10T14:00:00',
-  // ... etc
-} as const;
-```
-
-Then in E2E tests:
-```typescript
-import { TEST_TIME_STRINGS } from '../tests/fixtures/time';
-
-// Replace hardcoded strings
-const WEEKDAY_MORNING = TEST_TIME_STRINGS.WEEKDAY_MORNING;
-```
-
-**Tests:** All E2E tests should still pass with no behavior change.
-
----
-
-#### 5.3 Consolidate Countdown Formatting
-- **File:** `src/utils/time.ts`
-- **Lines:** ~35-51
-
-**Current code has two similar functions:**
-```typescript
-export function formatCountdown(minutesAway: number): string {
-  // ... ~8 lines
-}
-
-export function formatCountdownCompact(minutesAway: number): string {
-  // ... ~8 lines, very similar logic
-}
-```
-
-**Fix:** Combine into one function with an options parameter:
-```typescript
-interface FormatCountdownOptions {
-  compact?: boolean;
-}
-
-export function formatCountdown(
-  minutesAway: number,
-  options: FormatCountdownOptions = {}
-): string {
-  const { compact = false } = options;
-
-  if (minutesAway < 60) {
-    return compact ? `${minutesAway}m` : `in ${minutesAway} min`;
-  }
-
-  const hours = Math.floor(minutesAway / 60);
-  const mins = minutesAway % 60;
-
-  if (compact) {
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-  }
-  return mins > 0 ? `in ${hours}h ${mins} min` : `in ${hours}h`;
-}
-```
-
-Keep `formatCountdownCompact` as a simple wrapper for backwards compatibility:
-```typescript
-export function formatCountdownCompact(minutesAway: number): string {
-  return formatCountdown(minutesAway, { compact: true });
-}
-```
-
-**Tests:** Existing time.test.ts tests should pass. May need to add tests for the new options parameter.
-
----
-
-#### 5.4 Fix Direction Arrow Logic
-- **File:** `src/components/TrainList.tsx`
-- **Lines:** ~125-144
-
-**Current code:**
-```typescript
-function getDirectionArrow(directionName: string, currentRoute: string): string {
-  const name = directionName.toLowerCase();
-  if (name.includes('everett') || name.includes('edmonds') || name.includes('mukilteo')) {
-    return '↑';
-  }
-  // ... more hardcoded station names
-}
-```
-
-**Problem:** Fragile string matching. If station names change in GTFS data, arrows break silently.
-
-**Fix option 1:** Extract to utility with clear documentation:
-```typescript
-// src/utils/trainDirection.ts
-const NORTHBOUND_STATIONS = ['everett', 'edmonds', 'mukilteo'];
-const SOUTHBOUND_STATIONS = ['tacoma', 'lakewood', 'puyallup', 'sumner', 'auburn', 'kent', 'tukwila'];
-
-export function getDirectionArrow(destinationName: string, route: string): string {
-  const name = destinationName.toLowerCase();
-
-  if (route === 'n-line') {
-    // N-Line: North = Everett direction, South = Seattle direction
-    if (NORTHBOUND_STATIONS.some(s => name.includes(s))) return '↑';
-    return '↓';
-  }
-
-  // S-Line: South = Tacoma/Lakewood, North = Seattle
-  if (SOUTHBOUND_STATIONS.some(s => name.includes(s))) return '↓';
-  return '↑';
-}
-```
-
-**Tests:** Add unit tests for the new utility function covering both routes and various destinations.
-
----
 
 ### Priority 6: Error Handling & Edge Cases
 
@@ -491,19 +348,21 @@ Then update `extractTrainNumbers()` to use the `groupIndex` property instead of 
 
 ---
 
-## Test Coverage Added (Phase 1)
+## Test Coverage Added
 
 | File | Tests Added | Coverage |
 |------|-------------|----------|
 | `src/utils/schedule.test.ts` | 19 tests | getActiveServices, getTrainsByDirection |
 | `src/hooks/useTrainSchedule.test.ts` | 10 tests | Hook lifecycle, departing state, alerts |
+| `src/utils/trainDirection.test.ts` | 18 tests | getDirectionArrow for all routes and stations |
 
-**Total tests after Phase 1:** 391 unit tests, 35 E2E tests
+**Total tests:** 409 unit tests, 35 E2E tests
 
 ---
 
-## Files Modified (Phase 1)
+## Files Modified
 
+### Priority 1-2 (Phase 1)
 - `vite.config.ts` - Build target
 - `public/sw.js` - Error handling
 - `src/utils/schedule.ts` - New file
@@ -512,3 +371,19 @@ Then update `extractTrainNumbers()` to use the `groupIndex` property instead of 
 - `src/hooks/useTrainSchedule.test.ts` - New file
 - `src/App.tsx` - Refactored to use new utilities/hooks
 - `tests/fixtures/schedule-data.ts` - Fixed dates
+
+### Priority 3-5
+- `src/components/TrainList.tsx` - Added useMemo for stable direction key, use extracted direction utility
+- `src/components/ui/CircularProgress/CircularProgress.tsx` - Fixed filter ID stability with useState
+- `src/components/AlertList.tsx` - Wrapped with React.memo
+- `src/components/RouteSelect.tsx` - Wrapped with React.memo
+- `src/components/StopSelect.tsx` - Wrapped with React.memo
+- `src/App.css` - Added CSS containment, extracted overlay color variables
+- `src/utils/parseTrainAlerts.ts` - Extracted SEVERITY_RANK constant
+- `src/utils/time.ts` - Consolidated formatCountdown with options parameter
+- `src/utils/trainDirection.ts` - New file for direction arrow logic
+- `src/utils/trainDirection.test.ts` - New file with 18 tests
+- `tests/fixtures/time.ts` - Added TEST_TIME_STRINGS for E2E tests
+- `e2e/train-schedule.spec.ts` - Use centralized TEST_TIME_STRINGS
+- `e2e/visual.spec.ts` - Use centralized TEST_TIME_STRINGS
+- `e2e/train-alerts.spec.ts` - Use centralized TEST_TIME_STRINGS
