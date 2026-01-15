@@ -79,6 +79,22 @@ export function Carousel({
     return null;
   }
 
+  // Optimize: single item doesn't need carousel UI
+  if (itemCount === 1) {
+    return (
+      <div className={`${styles.carousel} ${className}`.trim()}>
+        {header && (
+          <div className={styles.header}>
+            <div className={styles.headerSlot}>{header}</div>
+          </div>
+        )}
+        <div className={styles.viewport}>
+          <div className={styles.slide}>{children[0]}</div>
+        </div>
+      </div>
+    );
+  }
+
   // Calculate transform for sliding effect
   const baseOffset = -currentIndex * 100;
   const containerWidth = containerRef.current?.offsetWidth || 300;

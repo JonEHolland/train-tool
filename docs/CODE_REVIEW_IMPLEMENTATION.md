@@ -108,163 +108,33 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
 - **Updated:** `src/components/TrainList.tsx` to import from utility
 - **Impact:** Clearer station classification with comprehensive test coverage
 
+### Priority 6: Error Handling & Edge Cases (Completed)
+
+#### 6.1 Add parseTime Input Validation (Completed)
+- **Change:** `src/utils/time.ts` - Added validation for empty strings, missing colons, invalid part counts, and non-numeric values
+- **Also:** Exported `ParsedTime` interface for external use (Item 7.1)
+- **Tests:** Added 7 validation tests in `src/utils/time.test.ts`
+- **Impact:** Invalid time strings now throw descriptive errors instead of silently producing NaN
+
+#### 6.2 Add E2E Tests for Network Failures (Completed)
+- **Change:** `e2e/train-alerts.spec.ts` - Added 3 new tests for network failure scenarios
+- **Tests:** Network abort, malformed JSON, and HTTP 500 error responses
+- **Impact:** Verified app gracefully degrades when alerts API fails
+
+#### 6.3 Optimize Carousel for Single-Child (Completed)
+- **Change:** `src/components/ui/Carousel/Carousel.tsx` - Added early return for single item
+- **Tests:** Added 3 new tests in `src/components/ui/Carousel/Carousel.test.tsx`
+- **Impact:** Single-item carousels skip swipe handlers, track element, and navigation controls
+
 ---
 
 ## Remaining Items
 
-### Priority 6: Error Handling & Edge Cases
-
-#### 6.1 Add parseTime Input Validation
-- **File:** `src/utils/time.ts`
-- **Lines:** 7-10
-
-**Current code:**
-```typescript
-export function parseTime(timeStr: string): ParsedTime {
-  const [h, m, s] = timeStr.split(':').map(Number);
-  return { hours: h, minutes: m, seconds: s || 0 };
-}
-```
-
-**Problem:** No validation. Malformed input produces `NaN` values that propagate silently.
-
-**Fix:**
-```typescript
-export function parseTime(timeStr: string): ParsedTime {
-  if (typeof timeStr !== 'string' || !timeStr.includes(':')) {
-    throw new Error(`Invalid time format: expected "HH:MM:SS" or "HH:MM", got "${timeStr}"`);
-  }
-
-  const parts = timeStr.split(':');
-  if (parts.length < 2 || parts.length > 3) {
-    throw new Error(`Invalid time format: expected 2-3 parts, got ${parts.length}`);
-  }
-
-  const [h, m, s] = parts.map(Number);
-
-  if (isNaN(h) || isNaN(m) || (s !== undefined && isNaN(s))) {
-    throw new Error(`Invalid time format: non-numeric values in "${timeStr}"`);
-  }
-
-  return { hours: h, minutes: m, seconds: s || 0 };
-}
-```
-
-**Tests:** Add tests for invalid inputs:
-```typescript
-it('throws on empty string', () => {
-  expect(() => parseTime('')).toThrow();
-});
-
-it('throws on invalid format', () => {
-  expect(() => parseTime('invalid')).toThrow();
-});
-
-it('throws on non-numeric parts', () => {
-  expect(() => parseTime('ab:cd:ef')).toThrow();
-});
-```
-
----
-
-#### 6.2 Add E2E Tests for Network Failures
-- **File:** `e2e/train-alerts.spec.ts`
-
-**Current state:** Only tests successful (200) responses.
-
-**Add test:**
-```typescript
-test('handles alert fetch failure gracefully', async ({ page }) => {
-  // Mock network failure
-  await page.route('**/api.allorigins.win/**', route => {
-    route.abort('failed');
-  });
-
-  await page.goto('/');
-
-  // App should still render trains without alerts
-  await expect(page.locator('.train-hero')).toBeVisible();
-
-  // Should not show SERVICE ALERTS section (or show error state)
-  // Verify no crash occurred
-});
-
-test('handles malformed alert JSON gracefully', async ({ page }) => {
-  await page.route('**/api.allorigins.win/**', route => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: 'not valid json',
-    });
-  });
-
-  await page.goto('/');
-  await expect(page.locator('.train-hero')).toBeVisible();
-});
-```
-
-**Tests:** These are new tests that verify graceful degradation.
-
----
-
-#### 6.3 Optimize Carousel for Single-Child
-- **File:** `src/components/ui/Carousel/Carousel.tsx`
-
-**Current behavior:** Even with 1 item, renders full carousel UI (dots, swipe handling, etc.)
-
-**Fix:** Early return for single item:
-```typescript
-export function Carousel({ children, ... }: CarouselProps) {
-  const items = Children.toArray(children);
-  const itemCount = items.length;
-
-  // Optimize: single item doesn't need carousel UI
-  if (itemCount === 1) {
-    return <div className={styles.container}>{items[0]}</div>;
-  }
-
-  // ... rest of carousel logic
-}
-```
-
-**Tests:** Add test:
-```typescript
-it('renders single child without carousel controls', () => {
-  render(<Carousel><div>Only item</div></Carousel>);
-  expect(screen.queryByRole('button', { name: /next/i })).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /previous/i })).not.toBeInTheDocument();
-});
-```
-
----
-
 ### Priority 7: Type Safety & Documentation
 
-#### 7.1 Export ParsedTime Interface
-- **File:** `src/utils/time.ts`
-- **Lines:** 1-5
-
-**Current code:**
-```typescript
-interface ParsedTime {  // Not exported
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
-```
-
-**Fix:**
-```typescript
-export interface ParsedTime {
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
-```
-
-**Tests:** No behavior change. TypeScript compilation should still pass.
-
----
+#### 7.1 Export ParsedTime Interface (Completed)
+- **Status:** Completed as part of Priority 6.1
+- **Change:** `src/utils/time.ts` - Added `export` to `ParsedTime` interface
 
 #### 7.2 Extract Magic Numbers to Constants
 - **Files and locations:**
@@ -355,8 +225,11 @@ Then update `extractTrainNumbers()` to use the `groupIndex` property instead of 
 | `src/utils/schedule.test.ts` | 19 tests | getActiveServices, getTrainsByDirection |
 | `src/hooks/useTrainSchedule.test.ts` | 10 tests | Hook lifecycle, departing state, alerts |
 | `src/utils/trainDirection.test.ts` | 18 tests | getDirectionArrow for all routes and stations |
+| `src/utils/time.test.ts` | 7 tests | parseTime validation (invalid inputs) |
+| `src/components/ui/Carousel/Carousel.test.tsx` | 3 tests | Single-child optimization |
+| `e2e/train-alerts.spec.ts` | 3 tests | Network failure handling |
 
-**Total tests:** 409 unit tests, 35 E2E tests
+**Total tests:** 419 unit tests, 38 E2E tests
 
 ---
 
@@ -386,4 +259,11 @@ Then update `extractTrainNumbers()` to use the `groupIndex` property instead of 
 - `tests/fixtures/time.ts` - Added TEST_TIME_STRINGS for E2E tests
 - `e2e/train-schedule.spec.ts` - Use centralized TEST_TIME_STRINGS
 - `e2e/visual.spec.ts` - Use centralized TEST_TIME_STRINGS
-- `e2e/train-alerts.spec.ts` - Use centralized TEST_TIME_STRINGS
+- `e2e/train-alerts.spec.ts` - Use centralized TEST_TIME_STRINGS, network failure tests
+
+### Priority 6
+- `src/utils/time.ts` - Added parseTime validation, exported ParsedTime interface
+- `src/utils/time.test.ts` - Added 7 validation tests
+- `src/components/ui/Carousel/Carousel.tsx` - Single-child optimization
+- `src/components/ui/Carousel/Carousel.test.tsx` - Added 3 optimization tests
+- `e2e/train-alerts.spec.ts` - Added 3 network failure tests

@@ -51,6 +51,37 @@ describe('time utilities', () => {
         seconds: 0,
       });
     });
+
+    describe('validation', () => {
+      it('throws on empty string', () => {
+        expect(() => parseTime('')).toThrow('Invalid time format');
+      });
+
+      it('throws on string without colon', () => {
+        expect(() => parseTime('invalid')).toThrow('Invalid time format');
+        expect(() => parseTime('1430')).toThrow('Invalid time format');
+      });
+
+      it('throws on too few parts', () => {
+        expect(() => parseTime('14')).toThrow('Invalid time format');
+      });
+
+      it('throws on too many parts', () => {
+        expect(() => parseTime('14:30:00:00')).toThrow('expected 2-3 parts');
+      });
+
+      it('throws on non-numeric hours', () => {
+        expect(() => parseTime('ab:30:00')).toThrow('non-numeric values');
+      });
+
+      it('throws on non-numeric minutes', () => {
+        expect(() => parseTime('14:cd:00')).toThrow('non-numeric values');
+      });
+
+      it('throws on non-numeric seconds', () => {
+        expect(() => parseTime('14:30:ef')).toThrow('non-numeric values');
+      });
+    });
   });
 
   describe('timeToMinutes', () => {

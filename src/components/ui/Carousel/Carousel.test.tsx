@@ -221,5 +221,39 @@ describe('Carousel', () => {
     const { container } = render(<Carousel className="custom-carousel">{mockItems}</Carousel>);
     expect(container.firstChild).toHaveClass('custom-carousel');
   });
+
+  describe('single child optimization', () => {
+    it('renders single child without carousel controls', () => {
+      render(<Carousel>{[<div key="1">Only item</div>]}</Carousel>);
+
+      // Content is visible
+      expect(screen.getByText('Only item')).toBeInTheDocument();
+
+      // No navigation controls
+      expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Previous' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Go to item/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Swipe for more/)).not.toBeInTheDocument();
+    });
+
+    it('renders header with single child', () => {
+      render(
+        <Carousel header={<span>Alerts</span>}>
+          {[<div key="1">Only alert</div>]}
+        </Carousel>
+      );
+
+      expect(screen.getByText('Alerts')).toBeInTheDocument();
+      expect(screen.getByText('Only alert')).toBeInTheDocument();
+    });
+
+    it('does not set up swipe handlers for single child', () => {
+      const { container } = render(<Carousel>{[<div key="1">Only</div>]}</Carousel>);
+
+      // Verify no track element with transform (used for multi-item sliding)
+      const track = container.querySelector('[class*="track"]');
+      expect(track).not.toBeInTheDocument();
+    });
+  });
 });
 

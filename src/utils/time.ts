@@ -1,11 +1,29 @@
-interface ParsedTime {
+export interface ParsedTime {
   hours: number;
   minutes: number;
   seconds: number;
 }
 
+/**
+ * Parse a time string in HH:MM or HH:MM:SS format.
+ * @throws Error if the format is invalid or contains non-numeric values
+ */
 export function parseTime(timeStr: string): ParsedTime {
-  const [h, m, s] = timeStr.split(':').map(Number);
+  if (typeof timeStr !== 'string' || !timeStr.includes(':')) {
+    throw new Error(`Invalid time format: expected "HH:MM:SS" or "HH:MM", got "${timeStr}"`);
+  }
+
+  const parts = timeStr.split(':');
+  if (parts.length < 2 || parts.length > 3) {
+    throw new Error(`Invalid time format: expected 2-3 parts, got ${parts.length}`);
+  }
+
+  const [h, m, s] = parts.map(Number);
+
+  if (isNaN(h) || isNaN(m) || (parts.length === 3 && isNaN(s))) {
+    throw new Error(`Invalid time format: non-numeric values in "${timeStr}"`);
+  }
+
   return { hours: h, minutes: m, seconds: s || 0 };
 }
 
