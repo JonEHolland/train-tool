@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Stop } from '../types';
 import { Select } from './ui';
 
@@ -7,7 +8,7 @@ interface StopSelectProps {
   onStopChange: (stopId: string) => void;
 }
 
-export function StopSelect({ stops, currentStop, onStopChange }: StopSelectProps) {
+export const StopSelect = memo(function StopSelect({ stops, currentStop, onStopChange }: StopSelectProps) {
   const options = stops.map(stop => ({
     value: stop.stopId,
     label: stop.name,
@@ -23,4 +24,4 @@ export function StopSelect({ stops, currentStop, onStopChange }: StopSelectProps
       />
     </div>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ScheduleData } from '../types';
 import { SegmentedControl } from './ui';
 
@@ -7,7 +8,7 @@ interface RouteSelectProps {
   onRouteChange: (route: string) => void;
 }
 
-export function RouteSelect({ scheduleData, currentRoute, onRouteChange }: RouteSelectProps) {
+export const RouteSelect = memo(function RouteSelect({ scheduleData, currentRoute, onRouteChange }: RouteSelectProps) {
   const routes = Object.entries(scheduleData.schedule);
 
   // Parse route name into title and subtitle
@@ -37,4 +38,4 @@ export function RouteSelect({ scheduleData, currentRoute, onRouteChange }: Route
       />
     </div>
   );
-}
+});

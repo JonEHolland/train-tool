@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { AlertEntity } from '../types';
 import { Card, CardBody, Label, EmptyState, Carousel } from './ui';
 
@@ -7,7 +8,7 @@ interface AlertListProps {
   error: string | null;
 }
 
-export function AlertList({ alerts, loading, error }: AlertListProps) {
+export const AlertList = memo(function AlertList({ alerts, loading, error }: AlertListProps) {
   // Handle loading and error states
   if (loading) {
     return (
@@ -65,4 +66,4 @@ export function AlertList({ alerts, loading, error }: AlertListProps) {
       </Carousel>
     </Card>
   );
-}
+});
