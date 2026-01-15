@@ -50,7 +50,7 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
   - Updated `src/App.tsx` to use the new hook
 - **Impact:** App.tsx reduced from ~285 to ~107 lines
 
-### Priority 3: Unnecessary Re-renders (In Progress)
+### Priority 3: Unnecessary Re-renders (Completed)
 
 #### 3.1 Fix TrainList Dependency Anti-pattern (Completed)
 - **Commit:** `6b8f9c6`
@@ -66,41 +66,14 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
 - **Change:** `src/components/ui/CircularProgress/CircularProgress.tsx` - Used `useState` to generate filter ID once
 - **Impact:** Prevents unnecessary SVG DOM mutations during re-renders
 
+#### 3.4 Add React.memo to List Components (Completed)
+- **Commit:** `2ad4e2d`
+- **Change:** Wrapped `AlertList`, `RouteSelect`, and `StopSelect` with `React.memo`
+- **Impact:** Prevents unnecessary re-renders when parent updates but props haven't changed
+
 ---
 
 ## Remaining Items
-
-### Priority 3: Unnecessary Re-renders (Continued)
-
-#### 3.4 Add React.memo to List Components
-- **Files:**
-  - `src/components/AlertList.tsx`
-  - `src/components/RouteSelect.tsx`
-  - `src/components/StopSelect.tsx`
-
-**Current code (example):**
-```typescript
-export function AlertList({ alerts, loading, error }: AlertListProps) {
-  // ...
-}
-```
-
-**Fix:** Wrap each component export with `React.memo`:
-```typescript
-import { memo } from 'react';
-
-function AlertListComponent({ alerts, loading, error }: AlertListProps) {
-  // ... existing implementation
-}
-
-export const AlertList = memo(AlertListComponent);
-```
-
-Do this for all three components. This prevents re-renders when parent updates but props haven't changed.
-
-**Tests:** All existing tests should pass. Components should behave identically.
-
----
 
 ### Priority 4: CSS & Layout Optimization
 
