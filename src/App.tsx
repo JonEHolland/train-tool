@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { useEffect, useCallback, lazy, Suspense } from 'react';
 import { RouteSelect } from './components/RouteSelect';
 import { StopSelect } from './components/StopSelect';
 import { TrainList } from './components/TrainList';
@@ -8,10 +8,9 @@ import { Disclaimer } from './components/Disclaimer';
 import { useAlerts } from './hooks/useAlerts';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
+import { useTrainSchedule } from './hooks/useTrainSchedule';
 import { isWeekday } from './utils/time';
-import { UPDATE_INTERVAL_MS, DEPARTING_DURATION_MS } from './utils/constants';
-import { getTrainsByDirection } from './utils/schedule';
-import type { ScheduleData, NextTrain, DirectionTrains } from './types';
+import type { ScheduleData } from './types';
 import scheduleData from './schedule-data.json';
 
 // Dev-only component showcase (lazy loaded)
@@ -39,16 +38,20 @@ export function App() {
   const handleStopChange = useCallback((stopId: string) => {
     setStopsMap(prev => ({ ...prev, [currentRoute]: stopId }));
   }, [currentRoute, setStopsMap]);
-  const [trainsByDirection, setTrainsByDirection] = useState<DirectionTrains[]>([]);
-
-  // Track when trains enter "Departing" state (key: direction-departureTime, value: timestamp)
-  const departingTrainsRef = useRef<Map<string, number>>(new Map());
 
   const routeId = typedScheduleData.schedule[currentRoute]?.routeId || '';
   const { trainAlerts, generalAlerts, loading: alertsLoading, error: alertsError } = useAlerts(routeId);
   const { updateAvailable, updateAndReload, dismiss } = useServiceWorkerUpdate();
 
   const stops = typedScheduleData.schedule[currentRoute]?.stops || [];
+
+  // Use the train schedule hook for departing state management and alert attachment
+  const { trainsByDirection } = useTrainSchedule({
+    scheduleData: typedScheduleData,
+    route: currentRoute,
+    stopId: currentStop,
+    trainAlerts,
+  });
 
   useEffect(() => {
     if (stops.length > 0 && !currentStop) {
@@ -58,69 +61,6 @@ export function App() {
       handleStopChange(stops[0].stopId);
     }
   }, [stops, currentStop, handleStopChange]);
-
-  const updateTrains = useCallback(() => {
-    if (currentStop) {
-      const rawTrains = getTrainsByDirection(typedScheduleData, currentRoute, currentStop);
-      const now = Date.now();
-      const departingMap = departingTrainsRef.current;
-
-      // Process each direction's trains to handle departing state
-      const processedTrains = rawTrains.map(direction => {
-        const processedDirectionTrains: NextTrain[] = [];
-
-        for (const train of direction.trains) {
-          const key = `${direction.directionName}-${train.time}`;
-
-          if (train.minutesAway < 1 && !train.isTomorrow) {
-            // Train is departing or has departed
-            if (!departingMap.has(key)) {
-              // First time entering departing state
-              departingMap.set(key, now);
-            }
-
-            const departingAt = departingMap.get(key)!;
-            const elapsed = now - departingAt;
-
-            if (elapsed < DEPARTING_DURATION_MS) {
-              // Still within departing window - show train with departing state
-              processedDirectionTrains.push({
-                ...train,
-                departingAt
-              });
-            }
-            // If elapsed >= DEPARTING_DURATION_MS, don't add the train (filter it out)
-          } else {
-            // Train is not departing - remove from map if it was there and add normally
-            departingMap.delete(key);
-            processedDirectionTrains.push(train);
-          }
-        }
-
-        return {
-          ...direction,
-          trains: processedDirectionTrains
-        };
-      }).filter(direction => direction.trains.length > 0); // Remove empty directions
-
-      // Attach alerts to matching trains by train number
-      const trainsWithAlerts = processedTrains.map(direction => ({
-        ...direction,
-        trains: direction.trains.map(train => ({
-          ...train,
-          alert: train.trainNumber ? trainAlerts.get(train.trainNumber) : undefined,
-        })),
-      }));
-
-      setTrainsByDirection(trainsWithAlerts);
-    }
-  }, [currentRoute, currentStop, trainAlerts]);
-
-  useEffect(() => {
-    updateTrains();
-    const interval = setInterval(updateTrains, UPDATE_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [updateTrains]);
 
   // Route change only updates route - station auto-restores from stopsMap
   const handleRouteChange = (route: string) => {
