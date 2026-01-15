@@ -13,7 +13,7 @@
 import type { ScheduleData } from '../../src/types';
 
 export const TEST_SCHEDULE_DATA: ScheduleData = {
-  generatedAt: '2025-01-01T00:00:00.000Z',
+  generatedAt: '2026-01-01T00:00:00.000Z',
   calendars: {
     'weekday-service': {
       monday: true,
@@ -23,8 +23,8 @@ export const TEST_SCHEDULE_DATA: ScheduleData = {
       friday: true,
       saturday: false,
       sunday: false,
-      start_date: '20250101',
-      end_date: '20251231',
+      start_date: '20260101',
+      end_date: '20261231',
     },
   },
   calendarDates: {},

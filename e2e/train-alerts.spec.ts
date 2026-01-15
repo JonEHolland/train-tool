@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { getPlaywrightDateMockScript } from '../tests/fixtures/time';
+import { getPlaywrightDateMockScript, TEST_TIME_STRINGS } from '../tests/fixtures/time';
 
-// Test time within schedule data's valid range
-const WEEKDAY_MORNING = '2026-01-06T07:30:00'; // Tuesday
+// Destructure test times for cleaner usage
+const { WEEKDAY_MORNING } = TEST_TIME_STRINGS;
 
 // Mock alert responses for testing
 const MOCK_ALERT_RESPONSE_GENERAL = {
@@ -185,6 +185,62 @@ test.describe('Train Alerts', () => {
       await expect(page.locator('.train-hero')).toBeVisible();
       // Should show time like "8h 35m", not "Cancelled"
       await expect(page.locator('.train-hero-countdown')).not.toContainText('Cancelled');
+    });
+  });
+
+  test.describe('network failure handling', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.addInitScript(getPlaywrightDateMockScript(WEEKDAY_MORNING));
+    });
+
+    test('handles alert fetch failure gracefully', async ({ page }) => {
+      // Mock network failure
+      await page.route(ALERT_ROUTE_PATTERN, route => {
+        route.abort('failed');
+      });
+
+      await page.goto('/');
+
+      // App should still render trains without alerts
+      await expect(page.locator('.train-hero')).toBeVisible();
+
+      // Should not show SERVICE ALERTS section (graceful degradation)
+      await expect(page.getByText('SERVICE ALERTS')).not.toBeVisible();
+
+      // Should show normal countdown (app still functional)
+      await expect(page.locator('.train-hero-countdown')).toBeVisible();
+    });
+
+    test('handles malformed alert JSON gracefully', async ({ page }) => {
+      await page.route(ALERT_ROUTE_PATTERN, route => {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: 'not valid json',
+        });
+      });
+
+      await page.goto('/');
+
+      // App should still work with train display
+      await expect(page.locator('.train-hero')).toBeVisible();
+      await expect(page.locator('.train-hero-countdown')).toBeVisible();
+    });
+
+    test('handles HTTP error response gracefully', async ({ page }) => {
+      await page.route(ALERT_ROUTE_PATTERN, route => {
+        route.fulfill({
+          status: 500,
+          contentType: 'text/plain',
+          body: 'Internal Server Error',
+        });
+      });
+
+      await page.goto('/');
+
+      // App should still render trains without alerts
+      await expect(page.locator('.train-hero')).toBeVisible();
+      await expect(page.locator('.train-hero-countdown')).toBeVisible();
     });
   });
 });

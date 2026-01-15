@@ -8,6 +8,8 @@ const __dirname = path.dirname(__filename);
 
 const GTFS_URL = 'https://gtfs.sound.obaweb.org/prod/40_gtfs.zip';
 const SOUNDER_ROUTES = ['SNDR_EV', 'SNDR_TL'];
+/** Sentinel value for sorting trips without departure times (sorts after all valid times) */
+const MAX_TIME_SENTINEL = '99:99:99';
 
 interface GTFSRow {
   [key: string]: string;
@@ -269,8 +271,8 @@ function buildScheduleData(gtfs: GTFSFiles): ScheduleData {
     // Sort trips by first departure time
     for (const dir of ['0', '1']) {
       schedule[routeKey].directions[dir].trips.sort((a, b) => {
-        const timeA = a.stops[0]?.departure || '99:99:99';
-        const timeB = b.stops[0]?.departure || '99:99:99';
+        const timeA = a.stops[0]?.departure || MAX_TIME_SENTINEL;
+        const timeB = b.stops[0]?.departure || MAX_TIME_SENTINEL;
         return timeA.localeCompare(timeB);
       });
     }

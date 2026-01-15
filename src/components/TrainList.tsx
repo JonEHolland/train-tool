@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import type { DirectionTrains, NextTrain } from '../types';
 import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/time';
 import { URGENCY_THRESHOLDS, PROGRESS_MAX_MINUTES } from '../utils/constants';
+import { getDirectionArrow } from '../utils/trainDirection';
 import { Card, CardBody, Tabs, CircularProgress, EmptyState, colors } from './ui';
 
 /**
@@ -60,10 +61,16 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
   const [isAnimating, setIsAnimating] = useState(false);
   const prevMinutesRef = useRef<number | null>(null);
 
+  // Stable key for direction names - only recomputes when trainsByDirection changes
+  const directionKey = useMemo(
+    () => trainsByDirection.map(d => d.directionName).join(','),
+    [trainsByDirection]
+  );
+
   // Reset tab when directions change (e.g., route or stop change)
   useEffect(() => {
     setActiveTab(0);
-  }, [trainsByDirection.map(d => d.directionName).join(',')]);
+  }, [directionKey]);
 
   // Get current first train for animation tracking
   const currentDirection = trainsByDirection[activeTab] || trainsByDirection[0];
@@ -121,31 +128,9 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
 
   const hasMultipleDirections = trainsByDirection.length > 1;
 
-  // Get direction arrow based on direction name and current route
-  const getDirectionArrow = (directionName: string) => {
-    const name = directionName.toLowerCase();
-    // Northbound destinations (going north)
-    if (name.includes('everett') || name.includes('edmonds') || name.includes('mukilteo')) {
-      return '↑';
-    }
-    // Southbound destinations (going south)
-    if (name.includes('tacoma') || name.includes('lakewood') || name.includes('kent') ||
-        name.includes('auburn') || name.includes('puyallup') || name.includes('sumner') ||
-        name.includes('tukwila')) {
-      return '↓';
-    }
-    // King Street/Seattle - direction depends on which line we're on
-    if (name.includes('seattle') || name.includes('king')) {
-      // N-Line: King Street is south of the other stations → going south
-      // S-Line: King Street is north of the other stations → going north
-      return currentRoute === 'n-line' ? '↓' : '↑';
-    }
-    return '';
-  };
-
   // Build tabs for multiple directions
   const tabs = trainsByDirection.map((direction, index) => {
-    const arrow = getDirectionArrow(direction.directionName);
+    const arrow = getDirectionArrow(direction.directionName, currentRoute);
     const shortName = direction.directionName.split(' ')[0];
     return {
       id: String(index),
@@ -186,7 +171,7 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
       ? colors.accent.primary
       : getTrainRingColor(firstTrain, isDeparting);
 
-    const directionArrow = getDirectionArrow(direction.directionName);
+    const directionArrow = getDirectionArrow(direction.directionName, currentRoute);
 
     // Build countdown class with animation state and alert styling
     const countdownClasses = [

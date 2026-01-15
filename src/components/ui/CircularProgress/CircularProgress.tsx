@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import styles from './CircularProgress.module.css';
 
 export interface CircularProgressProps {
@@ -40,8 +40,8 @@ export function CircularProgress({
   // Center point (adjusted for glow padding)
   const center = effectiveSize / 2;
 
-  // Unique ID for SVG filter
-  const filterId = `glow-${Math.random().toString(36).substr(2, 9)}`;
+  // Unique ID for SVG filter - generated once per component instance
+  const [filterId] = useState(() => `glow-${Math.random().toString(36).substr(2, 9)}`);
 
   return (
     <div className={styles.progress} style={{ width: size, height: size }}>

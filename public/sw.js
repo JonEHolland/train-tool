@@ -43,15 +43,36 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for static assets
+  // Cache-first for static assets with proper error handling
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, response.clone());
-          return response;
+      if (cached) {
+        return cached;
+      }
+
+      return fetch(event.request)
+        .then((response) => {
+          // Only cache successful responses
+          if (!response || response.status !== 200) {
+            return response;
+          }
+
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, response.clone());
+            return response;
+          });
+        })
+        .catch(() => {
+          // Network failed and no cache - return offline fallback for HTML requests
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            return new Response(
+              '<!DOCTYPE html><html><head><title>Offline</title></head><body style="font-family:system-ui;text-align:center;padding:2rem;"><h1>You\'re Offline</h1><p>Please check your connection and try again.</p></body></html>',
+              { headers: { 'Content-Type': 'text/html' } }
+            );
+          }
+          // For other resources, return a generic error
+          return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
         });
-      });
     })
   );
 });
