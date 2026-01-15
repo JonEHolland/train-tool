@@ -61,31 +61,16 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
 - Already addressed by useTrainSchedule hook (memoized via `useCallback`)
 - No action needed
 
+#### 3.3 Fix CircularProgress SVG Filter ID (Completed)
+- **Commit:** `facd8f0`
+- **Change:** `src/components/ui/CircularProgress/CircularProgress.tsx` - Used `useState` to generate filter ID once
+- **Impact:** Prevents unnecessary SVG DOM mutations during re-renders
+
 ---
 
 ## Remaining Items
 
 ### Priority 3: Unnecessary Re-renders (Continued)
-
-#### 3.3 Fix CircularProgress SVG Filter ID
-- **File:** `src/components/ui/CircularProgress/CircularProgress.tsx`
-- **Line:** ~44
-
-**Current code:**
-```typescript
-const filterId = `glow-${Math.random().toString(36).substr(2, 9)}`;
-```
-
-**Problem:** Generates a new random ID on every render, causing unnecessary SVG DOM mutations.
-
-**Fix:** Use `useState` to generate the ID once:
-```typescript
-const [filterId] = useState(() => `glow-${Math.random().toString(36).substr(2, 9)}`);
-```
-
-**Tests:** Existing CircularProgress tests should pass. The visual appearance should be identical.
-
----
 
 #### 3.4 Add React.memo to List Components
 - **Files:**
