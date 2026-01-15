@@ -71,93 +71,25 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
 - **Change:** Wrapped `AlertList`, `RouteSelect`, and `StopSelect` with `React.memo`
 - **Impact:** Prevents unnecessary re-renders when parent updates but props haven't changed
 
+### Priority 4: CSS & Layout Optimization (Completed)
+
+#### 4.1 Move Train CSS to Component Modules (Skipped)
+- **Status:** Skipped - over-engineering
+- **Reason:** Current CSS uses well-namespaced global classes (`train-*`, `alert-*`) that are already well-organized. Converting to CSS modules would require updating 30+ className references for minimal benefit.
+
+#### 4.2 Add CSS Containment (Completed)
+- **Commit:** `c84f203`
+- **Change:** Added `contain: layout style paint;` to `.train-hero` and `.train-secondary-item`
+- **Impact:** Enables browser paint/layout optimizations during countdown updates
+
+#### 4.3 Replace Hardcoded Colors (Completed)
+- **Commit:** `c84f203`
+- **Change:** Added CSS variables for overlay colors and replaced hardcoded rgba values
+- **Impact:** Consistent color management through CSS custom properties
+
 ---
 
 ## Remaining Items
-
-### Priority 4: CSS & Layout Optimization
-
-#### 4.1 Move Train CSS to Component Modules
-- **Source:** `src/App.css` (currently ~548 lines)
-- **Targets:**
-  - `src/components/TrainList.module.css` (new file)
-  - `src/components/AlertList.module.css` (new file)
-
-**What to move to `TrainList.module.css`:**
-- All `.train-*` classes (`.train-hero`, `.train-hero-countdown`, `.train-secondary-item`, etc.)
-- Lines approximately 160-463 in App.css
-
-**What to move to `AlertList.module.css`:**
-- All `.alert-*` classes if any exist specifically for alerts
-- The SERVICE ALERTS card styling
-
-**What stays in `App.css`:**
-- `:root` CSS variables (design tokens)
-- `.container` and layout primitives
-- Body/html base styles
-
-**Implementation steps:**
-1. Create the new `.module.css` files
-2. Move the relevant CSS classes
-3. Update component imports: `import styles from './TrainList.module.css'`
-4. Update className usage: `className="train-hero"` → `className={styles.trainHero}`
-5. Convert kebab-case class names to camelCase for CSS modules
-
-**Tests:** Visual regression tests will catch any styling issues. Run `npm run test:e2e` and verify screenshots match.
-
----
-
-#### 4.2 Add CSS Containment
-- **File:** Wherever `.train-hero` and `.train-secondary-item` end up (TrainList.module.css or App.css)
-
-**Add to these classes:**
-```css
-.train-hero {
-  /* existing styles */
-  contain: layout style paint;
-}
-
-.train-secondary-item {
-  /* existing styles */
-  contain: layout style paint;
-}
-```
-
-**Why:** Containment tells the browser that updates inside these elements won't affect layout outside them, enabling paint/layout optimizations during countdown updates.
-
-**Tests:** Visual regression should pass. No functional change.
-
----
-
-#### 4.3 Replace Hardcoded Colors
-- **File:** `src/App.css`
-- **Lines:** ~111 and ~281
-
-**Current code:**
-```css
-/* Line ~111 */
-background: rgba(10, 22, 40, 0.4);
-
-/* Line ~281 */
-background: rgba(255, 255, 255, 0.03);
-```
-
-**Fix:** Add new CSS variables to `:root` and use them:
-```css
-:root {
-  /* existing variables */
-  --color-overlay-dark: rgba(10, 22, 40, 0.4);
-  --color-overlay-light: rgba(255, 255, 255, 0.03);
-}
-
-/* Then replace hardcoded values */
-background: var(--color-overlay-dark);
-background: var(--color-overlay-light);
-```
-
-**Tests:** Visual regression should pass. Colors should be identical.
-
----
 
 ### Priority 5: Code Quality & DRY Violations
 
