@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import type { DirectionTrains, NextTrain } from '../types';
 import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/time';
 import { URGENCY_THRESHOLDS, PROGRESS_MAX_MINUTES } from '../utils/constants';
@@ -60,10 +60,16 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
   const [isAnimating, setIsAnimating] = useState(false);
   const prevMinutesRef = useRef<number | null>(null);
 
+  // Stable key for direction names - only recomputes when trainsByDirection changes
+  const directionKey = useMemo(
+    () => trainsByDirection.map(d => d.directionName).join(','),
+    [trainsByDirection]
+  );
+
   // Reset tab when directions change (e.g., route or stop change)
   useEffect(() => {
     setActiveTab(0);
-  }, [trainsByDirection.map(d => d.directionName).join(',')]);
+  }, [directionKey]);
 
   // Get current first train for animation tracking
   const currentDirection = trainsByDirection[activeTab] || trainsByDirection[0];
