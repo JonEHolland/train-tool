@@ -50,47 +50,22 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
   - Updated `src/App.tsx` to use the new hook
 - **Impact:** App.tsx reduced from ~285 to ~107 lines
 
+### Priority 3: Unnecessary Re-renders (In Progress)
+
+#### 3.1 Fix TrainList Dependency Anti-pattern (Completed)
+- **Commit:** `6b8f9c6`
+- **Change:** `src/components/TrainList.tsx` - Added `useMemo` to create stable `directionKey`
+- **Impact:** Prevents unnecessary `setActiveTab(0)` calls on every render
+
+#### 3.2 Memoize Alert Attachment in App.tsx (Completed)
+- Already addressed by useTrainSchedule hook (memoized via `useCallback`)
+- No action needed
+
 ---
 
 ## Remaining Items
 
-### Priority 3: Unnecessary Re-renders
-
-#### 3.1 Fix TrainList Dependency Anti-pattern
-- **File:** `src/components/TrainList.tsx`
-- **Line:** ~66
-
-**Current code:**
-```typescript
-useEffect(() => {
-  setActiveTab(0);
-}, [trainsByDirection.map(d => d.directionName).join(',')]);
-```
-
-**Problem:** `.map().join()` creates a new string on every render, which can cause unnecessary effect triggers.
-
-**Fix:** Use `useMemo` to create a stable key:
-```typescript
-const directionKey = useMemo(
-  () => trainsByDirection.map(d => d.directionName).join(','),
-  [trainsByDirection]
-);
-
-useEffect(() => {
-  setActiveTab(0);
-}, [directionKey]);
-```
-
-**Tests:** Existing TrainList tests should still pass. Consider adding a test that verifies tab doesn't reset unnecessarily.
-
----
-
-#### 3.2 Memoize Alert Attachment in App.tsx
-- **Status:** ✅ Already addressed by useTrainSchedule hook
-- Alert attachment is now memoized via `useCallback` in the hook
-- No action needed
-
----
+### Priority 3: Unnecessary Re-renders (Continued)
 
 #### 3.3 Fix CircularProgress SVG Filter ID
 - **File:** `src/components/ui/CircularProgress/CircularProgress.tsx`
