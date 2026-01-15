@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/** Length of the hash prefix used in cache version names */
+const CACHE_VERSION_HASH_LENGTH = 8;
+
 const distDir = path.join(__dirname, '..', 'dist');
 const publicDir = path.join(__dirname, '..', 'public');
 const indexPath = path.join(distDir, 'index.html');
@@ -40,7 +43,7 @@ for (const iconFile of iconFiles) {
   }
 }
 
-const hash = hashFiles.digest('hex').slice(0, 8);
+const hash = hashFiles.digest('hex').slice(0, CACHE_VERSION_HASH_LENGTH);
 
 // Update the service worker with the new cache name
 let swContent = fs.readFileSync(swPath, 'utf-8');

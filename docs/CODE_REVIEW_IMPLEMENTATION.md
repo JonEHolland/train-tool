@@ -128,95 +128,28 @@ If tests fail, fix them before committing. If a refactoring doesn't break any te
 
 ---
 
-## Remaining Items
-
-### Priority 7: Type Safety & Documentation
+### Priority 7: Type Safety & Documentation (Completed)
 
 #### 7.1 Export ParsedTime Interface (Completed)
 - **Status:** Completed as part of Priority 6.1
 - **Change:** `src/utils/time.ts` - Added `export` to `ParsedTime` interface
 
-#### 7.2 Extract Magic Numbers to Constants
-- **Files and locations:**
+#### 7.2 Extract Magic Numbers to Constants (Completed)
+- **Changes:**
+  - `src/utils/parseTrainAlerts.ts` - Added `MAX_REASONABLE_DELAY_MINUTES` constant
+  - `scripts/fetch-gtfs.ts` - Added `MAX_TIME_SENTINEL` constant
+  - `scripts/update-sw-hash.ts` - Added `CACHE_VERSION_HASH_LENGTH` constant
+- **Impact:** Self-documenting code with named constants replacing magic numbers
 
-**`src/utils/parseTrainAlerts.ts:101`:**
-```typescript
-// Current
-if (!isNaN(minutes) && minutes > 0 && minutes < 180) {
-
-// Fix
-const MAX_REASONABLE_DELAY_MINUTES = 180;
-if (!isNaN(minutes) && minutes > 0 && minutes < MAX_REASONABLE_DELAY_MINUTES) {
-```
-
-**`scripts/fetch-gtfs.ts:219`:**
-```typescript
-// Current
-const timeA = a.stops[0]?.departure || '99:99:99';
-
-// Fix
-const MAX_TIME_SENTINEL = '99:59:59'; // Sorts after all valid times
-const timeA = a.stops[0]?.departure || MAX_TIME_SENTINEL;
-```
-
-**`scripts/update-sw-hash.ts:43`:**
-```typescript
-// Current
-const hash = hashFiles.digest('hex').slice(0, 8);
-
-// Fix
-const CACHE_VERSION_HASH_LENGTH = 8;
-const hash = hashFiles.digest('hex').slice(0, CACHE_VERSION_HASH_LENGTH);
-```
-
-**Tests:** No behavior change. Existing tests should pass.
+#### 7.3 Improve Regex Pattern Documentation (Completed)
+- **Change:** `src/utils/parseTrainAlerts.ts` - Enhanced JSDoc for `TRAIN_NUMBER_PATTERNS`
+- **Added:** Priority order documentation, pattern explanations, capture group info
+- **Note:** Kept array structure (simpler than object approach) with improved inline comments
+- **Impact:** Clearer understanding of pattern matching logic
 
 ---
 
-#### 7.3 Improve Regex Pattern Documentation
-- **File:** `src/utils/parseTrainAlerts.ts`
-- **Lines:** 17-23
-
-**Current code:**
-```typescript
-const TRAIN_NUMBER_PATTERNS = [
-  /[Tt]rain\s*#?(\d{4}[A-Z]?)/g,
-  /[Ss]ounder\s+train\s*#?(\d{4}[A-Z]?)/g,
-  // ... more patterns
-];
-```
-
-**Fix:** Use documented object structure:
-```typescript
-interface TrainNumberPattern {
-  /** Human-readable description of what this pattern matches */
-  name: string;
-  /** The regex pattern */
-  pattern: RegExp;
-  /** Which capture group contains the train number (1-indexed) */
-  groupIndex: number;
-}
-
-const TRAIN_NUMBER_PATTERNS: TrainNumberPattern[] = [
-  {
-    name: 'Standard format (Train 1700, Train #1700)',
-    pattern: /[Tt]rain\s*#?(\d{4}[A-Z]?)/g,
-    groupIndex: 1,
-  },
-  {
-    name: 'Sounder train format',
-    pattern: /[Ss]ounder\s+train\s*#?(\d{4}[A-Z]?)/g,
-    groupIndex: 1,
-  },
-  // ... etc
-];
-```
-
-Then update `extractTrainNumbers()` to use the `groupIndex` property instead of iterating all capture groups.
-
-**Tests:** Existing parseTrainAlerts tests should pass.
-
----
+## All Implementation Complete
 
 ## Test Coverage Added
 
@@ -267,3 +200,8 @@ Then update `extractTrainNumbers()` to use the `groupIndex` property instead of 
 - `src/components/ui/Carousel/Carousel.tsx` - Single-child optimization
 - `src/components/ui/Carousel/Carousel.test.tsx` - Added 3 optimization tests
 - `e2e/train-alerts.spec.ts` - Added 3 network failure tests
+
+### Priority 7
+- `src/utils/parseTrainAlerts.ts` - Added MAX_REASONABLE_DELAY_MINUTES constant, improved pattern docs
+- `scripts/fetch-gtfs.ts` - Added MAX_TIME_SENTINEL constant
+- `scripts/update-sw-hash.ts` - Added CACHE_VERSION_HASH_LENGTH constant

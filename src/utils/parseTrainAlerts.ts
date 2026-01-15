@@ -12,15 +12,31 @@ export interface ParsedAlerts {
 
 /**
  * Patterns to extract train numbers from alert text.
+ *
  * Sounder train numbers are typically 4 digits, sometimes with a letter suffix (e.g., "1820E").
+ * All patterns use capture groups to extract the train number(s).
+ * The extractTrainNumbers function iterates all capture groups to collect matches.
+ *
+ * Pattern priority order (first match wins for each position):
+ * 1. Standard format: "Train 1700", "Train #1511"
+ * 2. Sounder prefix: "Sounder train #1511"
+ * 3. Line start: "1702: Running late"
+ * 4. Hashtag only: "#1700"
+ * 5. Multiple trains: "Trains 1700, 1702, and 1704"
  */
 const TRAIN_NUMBER_PATTERNS = [
-  /[Tt]rain\s*#?(\d{4}[A-Z]?)/g,           // "Train 1700", "Train #1511", "train #1700"
-  /[Ss]ounder\s+train\s*#?(\d{4}[A-Z]?)/g, // "Sounder train #1511"
-  /(?:^|\s)(\d{4}[A-Z]?):/gm,              // "1702: Running late" at line start or after whitespace
-  /#(\d{4}[A-Z]?)\b/g,                      // "#1700" standalone
-  /[Tt]rains?\s+(\d{4}[A-Z]?)(?:,\s*(\d{4}[A-Z]?))*(?:,?\s*and\s+(\d{4}[A-Z]?))?/g, // "Trains 1700, 1702, and 1704"
+  /[Tt]rain\s*#?(\d{4}[A-Z]?)/g,           // Standard: "Train 1700", "Train #1511", "train #1700"
+  /[Ss]ounder\s+train\s*#?(\d{4}[A-Z]?)/g, // Sounder prefix: "Sounder train #1511"
+  /(?:^|\s)(\d{4}[A-Z]?):/gm,              // Line start: "1702: Running late"
+  /#(\d{4}[A-Z]?)\b/g,                      // Hashtag: "#1700" standalone
+  /[Tt]rains?\s+(\d{4}[A-Z]?)(?:,\s*(\d{4}[A-Z]?))*(?:,?\s*and\s+(\d{4}[A-Z]?))?/g, // Multiple: "Trains 1700, 1702, and 1704"
 ];
+
+/**
+ * Maximum reasonable delay in minutes for alert parsing.
+ * Delays reported greater than this are likely parsing errors or data issues.
+ */
+const MAX_REASONABLE_DELAY_MINUTES = 180;
 
 /**
  * Severity ranking - higher number = more severe.
@@ -116,7 +132,7 @@ export function extractDelayMinutes(text: string): number | undefined {
     const match = text.match(pattern);
     if (match && match[1]) {
       const minutes = parseInt(match[1], 10);
-      if (!isNaN(minutes) && minutes > 0 && minutes < 180) {
+      if (!isNaN(minutes) && minutes > 0 && minutes < MAX_REASONABLE_DELAY_MINUTES) {
         return minutes;
       }
     }
