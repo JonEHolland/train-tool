@@ -27,7 +27,10 @@ npm run fetch-data   # Update GTFS schedule data
 | Type definitions | `src/types.ts` |
 | Design system (CSS vars) | `src/App.css` (lines 1-57) |
 | Time utilities | `src/utils/time.ts` |
+| Schedule logic | `src/utils/schedule.ts` |
+| Direction arrows | `src/utils/trainDirection.ts` |
 | Alert parsing | `src/utils/parseTrainAlerts.ts` |
+| Departing state hook | `src/hooks/useTrainSchedule.ts` |
 | Test fixtures | `tests/fixtures/` |
 | E2E tests | `e2e/` |
 | Visual snapshots | `e2e/visual.spec.ts-snapshots/` |
@@ -97,6 +100,39 @@ For all new features, follow this workflow:
 
 ---
 
+## Refactoring & Code Review Workflow
+
+When implementing multiple code review improvements or refactoring tasks:
+
+### Prioritized Implementation
+1. **Group related changes into priorities** (e.g., Priority 1: Performance, Priority 2: Code Organization)
+2. **Complete all items in a priority before moving to the next**
+3. **Run tests after each priority** - `npm run test` and `npm run test:e2e`
+4. **Commit each priority separately** with descriptive messages
+5. **Update PR description** after each priority to track progress
+
+### When to Skip or Simplify Changes
+Not all suggested improvements are worth implementing. Skip or simplify when:
+- **Over-engineering**: If current code is already well-organized (e.g., CSS modules refactor when existing CSS uses clear namespacing)
+- **Cost exceeds benefit**: Restructuring that requires touching many files for minimal gain
+- **Complexity without clarity**: Object structures that add indirection without improving understanding
+
+**Example decisions made:**
+- Skipped CSS modules refactor - existing `.train-*` classes are well-namespaced
+- Simplified regex documentation - enhanced JSDoc instead of object restructure
+
+### Test Coverage Expectations
+Current test counts (update these when adding significant test suites):
+- **Unit tests:** ~420 tests
+- **E2E tests:** ~38 tests
+
+When adding new utilities, aim for comprehensive test coverage:
+- `src/utils/schedule.ts` → 19 tests
+- `src/utils/trainDirection.ts` → 18 tests
+- `src/hooks/useTrainSchedule.ts` → 10 tests
+
+---
+
 ## Architecture & Code Patterns
 
 ### Component Hierarchy
@@ -117,15 +153,19 @@ App.tsx (orchestrator)
 ```
 schedule-data.json (static)
          ↓
-App.tsx getActiveServices() → filters by calendar
+schedule.ts: getActiveServices() → filters by calendar
          ↓
-App.tsx getTrainsByDirection() → calculates minutesAway
+schedule.ts: getTrainsByDirection() → calculates minutesAway
+         ↓
+useTrainSchedule() hook → manages departing state + attaches alerts
          ↓
 useAlerts() hook → fetches & parses alerts
          ↓
 parseTrainAlerts() → maps alerts to train numbers
          ↓
 TrainList → renders with urgency colors + alerts
+         ↓
+trainDirection.ts: getDirectionArrow() → determines ↑/↓ arrows
 ```
 
 ### State Management
@@ -135,7 +175,7 @@ TrainList → renders with urgency colors + alerts
 
 ### Key Algorithms
 
-**Active Services** (`App.tsx:getActiveServices`):
+**Active Services** (`src/utils/schedule.ts:getActiveServices`):
 1. Check if today falls within calendar start/end dates
 2. Check if calendar[dayOfWeek] is true
 3. Apply calendar_dates exceptions (type 1 = add, type 2 = remove)
@@ -323,6 +363,8 @@ it('shows trains on weekday morning', () => {
 
 ### Test Fixtures
 - `tests/fixtures/time.ts` - Predefined test times (weekday, weekend, urgency states)
+  - `TEST_TIMES` - Date objects for unit tests with `vi.setSystemTime()`
+  - `TEST_TIME_STRINGS` - ISO strings for E2E tests with `getPlaywrightDateMockScript()`
 - `tests/fixtures/alerts.ts` - Mock alert data
 - `tests/fixtures/schedule-data.ts` - Test schedule data
 
@@ -371,6 +413,103 @@ Snapshots are in `e2e/visual.spec.ts-snapshots/` - always review diffs before co
 ### Updating Schedule Data
 ```bash
 npm run fetch-data  # Downloads latest GTFS from Sound Transit
+```
+
+---
+
+## Performance Patterns
+
+These patterns are established in the codebase for optimal React performance:
+
+### React.memo for List Components
+Components that receive stable props but have expensive parents should use `React.memo`:
+```tsx
+// AlertList, RouteSelect, StopSelect are wrapped with memo
+export const AlertList = memo(function AlertList({ alerts, loading, error }: AlertListProps) {
+  // ...
+});
+```
+
+### useMemo for Stable Dependency Keys
+When a useEffect dependency would create a new value each render, use `useMemo`:
+```tsx
+// BAD: Creates new string every render, causing unnecessary effect runs
+useEffect(() => {
+  setActiveTab(0);
+}, [trainsByDirection.map(d => d.directionName).join(',')]);
+
+// GOOD: Memoized key only changes when array reference changes
+const directionKey = useMemo(
+  () => trainsByDirection.map(d => d.directionName).join(','),
+  [trainsByDirection]
+);
+useEffect(() => {
+  setActiveTab(0);
+}, [directionKey]);
+```
+
+### useState for Stable IDs
+When a component needs a unique ID (e.g., for SVG filters), use `useState` with initializer:
+```tsx
+// Generates ID once on mount, stable across re-renders
+const [filterId] = useState(() => `glow-${Math.random().toString(36).substr(2, 9)}`);
+```
+
+### CSS Containment
+For frequently updating elements, use CSS containment to optimize browser paint:
+```css
+.train-hero {
+  contain: layout style paint;
+}
+```
+
+---
+
+## Code Quality Patterns
+
+### Named Constants over Magic Numbers
+All magic numbers should be extracted to named constants:
+```tsx
+// In src/utils/parseTrainAlerts.ts
+const MAX_REASONABLE_DELAY_MINUTES = 180;
+
+// In scripts/fetch-gtfs.ts
+const MAX_TIME_SENTINEL = '99:99:99';
+```
+
+### Exported Interfaces
+Public interfaces should be exported for external use:
+```tsx
+export interface ParsedTime {
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+```
+
+### Input Validation
+Functions that parse external data should validate input:
+```tsx
+export function parseTime(timeStr: string): ParsedTime {
+  if (typeof timeStr !== 'string' || !timeStr.includes(':')) {
+    throw new Error(`Invalid time format: expected "HH:MM:SS" or "HH:MM", got "${timeStr}"`);
+  }
+  // ... rest of parsing
+}
+```
+
+### Single-Item Optimization
+Collections that may have one item should optimize for that case:
+```tsx
+// In Carousel component
+if (itemCount === 1) {
+  return (
+    <div className={styles.carousel}>
+      <div className={styles.slide}>{children[0]}</div>
+    </div>
+  );
+}
+// Full carousel UI only for multiple items
 ```
 
 ---
@@ -429,11 +568,14 @@ src/
 ├── hooks/
 │   ├── useAlerts.ts     # Fetch & parse alerts (5-min polling)
 │   ├── useLocalStorage.ts  # Persistent state
-│   └── useServiceWorkerUpdate.ts  # PWA updates
+│   ├── useServiceWorkerUpdate.ts  # PWA updates
+│   └── useTrainSchedule.ts  # Departing state management
 └── utils/
     ├── constants.ts     # Urgency thresholds, intervals
     ├── time.ts          # Time formatting & calculation
+    ├── schedule.ts      # Schedule filtering & train calculations
     ├── trainNumber.ts   # Extract train number from tripId
+    ├── trainDirection.ts # Direction arrow logic
     └── parseTrainAlerts.ts  # Alert parsing & classification
 
 tests/
