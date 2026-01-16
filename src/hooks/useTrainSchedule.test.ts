@@ -234,4 +234,91 @@ describe('useTrainSchedule', () => {
 
     expect(result.current.trainsByDirection).toEqual([]);
   });
+
+  describe('serviceContext', () => {
+    it('returns serviceContext with hasService true on weekday', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      const { result } = renderHook(() =>
+        useTrainSchedule({
+          scheduleData: TEST_SCHEDULE_DATA,
+          route: 'n-line',
+          stopId: 'edmonds',
+          trainAlerts: emptyAlerts,
+        })
+      );
+
+      expect(result.current.serviceContext).toBeDefined();
+      expect(result.current.serviceContext.hasService).toBe(true);
+      expect(result.current.serviceContext.isWeekendWithNoService).toBe(false);
+    });
+
+    it('returns serviceContext with isWeekendWithNoService true on weekend', () => {
+      vi.setSystemTime(TEST_TIMES.SATURDAY_AFTERNOON);
+
+      const { result } = renderHook(() =>
+        useTrainSchedule({
+          scheduleData: TEST_SCHEDULE_DATA,
+          route: 'n-line',
+          stopId: 'edmonds',
+          trainAlerts: emptyAlerts,
+        })
+      );
+
+      expect(result.current.serviceContext.hasService).toBe(false);
+      expect(result.current.serviceContext.isWeekendWithNoService).toBe(true);
+    });
+
+    it('returns serviceContext with exception service info when gameday active', () => {
+      vi.setSystemTime(TEST_TIMES.SUNDAY_MORNING); // Jan 11, 2026
+
+      // Build gameday data with a trip that references the gameday service
+      const gamedayData = {
+        ...TEST_SCHEDULE_DATA,
+        calendarDates: {
+          'SOUNDER_GAMEDAY_1210_Sunday': [
+            { date: '20260111', exception_type: '1' },
+          ],
+        },
+        schedule: {
+          ...TEST_SCHEDULE_DATA.schedule,
+          'n-line': {
+            ...TEST_SCHEDULE_DATA.schedule['n-line'],
+            directions: {
+              ...TEST_SCHEDULE_DATA.schedule['n-line'].directions,
+              '0': {
+                trips: [
+                  ...TEST_SCHEDULE_DATA.schedule['n-line'].directions['0'].trips,
+                  {
+                    tripId: 'gameday-trip-1',
+                    serviceId: 'SOUNDER_GAMEDAY_1210_Sunday',
+                    headsign: 'Seattle',
+                    stops: [
+                      { stopId: 'everett', arrival: '10:00:00', departure: '10:00:00' },
+                      { stopId: 'edmonds', arrival: '10:20:00', departure: '10:20:00' },
+                      { stopId: 'seattle', arrival: '10:50:00', departure: '10:50:00' },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      const { result } = renderHook(() =>
+        useTrainSchedule({
+          scheduleData: gamedayData,
+          route: 'n-line',
+          stopId: 'edmonds',
+          trainAlerts: emptyAlerts,
+        })
+      );
+
+      expect(result.current.serviceContext.hasService).toBe(true);
+      expect(result.current.serviceContext.hasExceptionService).toBe(true);
+      expect(result.current.serviceContext.exceptionServiceType).toBe('gameday');
+      expect(result.current.serviceContext.isWeekendWithNoService).toBe(false);
+    });
+  });
 });

@@ -513,6 +513,50 @@ body {
 }
 
 /* ==========================================================================
+   Gameday Banner
+   ========================================================================== */
+
+.gameday-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-md);
+}
+
+.gameday-banner-icon {
+  font-size: 1.25rem;
+}
+
+.gameday-banner-text {
+  text-transform: uppercase;
+}
+
+/* Generic gameday theme (gold/navy) */
+.gameday-banner--generic {
+  background: linear-gradient(135deg, #FFD700 0%, #FFC000 100%);
+  color: #0A1628;
+}
+
+/* Seahawks theme (action green/college navy) */
+.gameday-banner--seahawks {
+  background: linear-gradient(135deg, #69BE28 0%, #4DA324 100%);
+  color: #002244;
+}
+
+/* Mariners theme (NW green/navy) */
+.gameday-banner--mariners {
+  background: linear-gradient(135deg, #005C5C 0%, #004D4D 100%);
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
    Responsive Design
    ========================================================================== */
 

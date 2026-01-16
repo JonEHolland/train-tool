@@ -206,3 +206,39 @@ export function parseTrainAlerts(alerts: AlertEntity[]): ParsedAlerts {
 
   return { trainAlerts, generalAlerts };
 }
+
+/** Sports team type for Seattle teams */
+export type SportsTeam = 'seahawks' | 'mariners';
+
+/**
+ * Detect if any alerts mention a Seattle sports team.
+ * Used for theming the gameday banner.
+ *
+ * @returns The detected team, or null if no team is mentioned
+ */
+export function detectTeamFromAlerts(alerts: AlertEntity[]): SportsTeam | null {
+  for (const entity of alerts) {
+    const text = getAlertText(entity).toLowerCase();
+
+    // Check for Seahawks (football)
+    if (text.includes('seahawks')) {
+      return 'seahawks';
+    }
+
+    // Check for Mariners (baseball)
+    if (text.includes('mariners')) {
+      return 'mariners';
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Check if an alert mentions a specific team.
+ * Used to determine if a specific alert should be hidden when banner is shown.
+ */
+export function alertMentionsTeam(alert: AlertEntity, team: SportsTeam): boolean {
+  const text = getAlertText(alert).toLowerCase();
+  return text.includes(team);
+}

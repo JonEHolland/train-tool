@@ -76,11 +76,33 @@ export interface NextTrain {
   trainNumber?: string;
   /** Attached alert if this train has a service alert */
   alert?: TrainAlert;
+  /** Whether this train is from an exception-only service (gameday, fair, etc.) */
+  isExceptionService?: boolean;
+  /** Type of exception service if applicable */
+  exceptionServiceType?: ExceptionServiceType;
 }
 
 export interface DirectionTrains {
   directionName: string;
   trains: NextTrain[];
+}
+
+/** Type of exception service based on service ID pattern */
+export type ExceptionServiceType = 'gameday' | 'fair' | 'reduced' | 'special';
+
+/**
+ * Context about the current service state for a route.
+ * Used to determine what empty state message to show.
+ */
+export interface ServiceContext {
+  /** Whether any service is running today (regular or exception) */
+  hasService: boolean;
+  /** Whether active service includes exception-only services */
+  hasExceptionService: boolean;
+  /** Type of exception service if active (for UX treatment) */
+  exceptionServiceType: ExceptionServiceType | null;
+  /** Whether it's a weekend day with no service at all */
+  isWeekendWithNoService: boolean;
 }
 
 export interface AlertTranslation {

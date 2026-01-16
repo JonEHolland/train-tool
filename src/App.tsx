@@ -1,15 +1,16 @@
-import { useEffect, useCallback, lazy, Suspense } from 'react';
+import { useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { RouteSelect } from './components/RouteSelect';
 import { StopSelect } from './components/StopSelect';
 import { TrainList } from './components/TrainList';
 import { AlertList } from './components/AlertList';
 import { UpdateBanner } from './components/UpdateBanner';
+import { GamedayBanner, GamedayTheme } from './components/GamedayBanner';
 import { Disclaimer } from './components/Disclaimer';
 import { useAlerts } from './hooks/useAlerts';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
 import { useTrainSchedule } from './hooks/useTrainSchedule';
-import { isWeekday } from './utils/time';
+import { detectTeamFromAlerts, alertMentionsTeam } from './utils/parseTrainAlerts';
 import type { ScheduleData } from './types';
 import scheduleData from './schedule-data.json';
 
@@ -46,12 +47,43 @@ export function App() {
   const stops = typedScheduleData.schedule[currentRoute]?.stops || [];
 
   // Use the train schedule hook for departing state management and alert attachment
-  const { trainsByDirection } = useTrainSchedule({
+  const { trainsByDirection, serviceContext } = useTrainSchedule({
     scheduleData: typedScheduleData,
     route: currentRoute,
     stopId: currentStop,
     trainAlerts,
   });
+
+  // Gameday banner logic: Check if any TODAY's train is a gameday exception service
+  const hasGamedayTrainToday = useMemo(() => {
+    for (const direction of trainsByDirection) {
+      for (const train of direction.trains) {
+        // Only consider trains for TODAY (not tomorrow)
+        if (!train.isTomorrow && train.isExceptionService && train.exceptionServiceType === 'gameday') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }, [trainsByDirection]);
+
+  // Detect team from alerts for banner theming
+  const detectedTeam = useMemo(
+    () => detectTeamFromAlerts(generalAlerts),
+    [generalAlerts]
+  );
+
+  // Determine banner theme: team if detected, otherwise generic
+  const gamedayTheme: GamedayTheme = detectedTeam || 'generic';
+
+  // Filter alerts: hide team-mentioning alert only if team detected AND banner shown
+  const filteredAlerts = useMemo(() => {
+    if (!hasGamedayTrainToday || !detectedTeam) {
+      return generalAlerts;
+    }
+    // Hide alerts that mention the detected team
+    return generalAlerts.filter(alert => !alertMentionsTeam(alert, detectedTeam));
+  }, [generalAlerts, hasGamedayTrainToday, detectedTeam]);
 
   useEffect(() => {
     if (stops.length > 0 && !currentStop) {
@@ -66,8 +98,6 @@ export function App() {
   const handleRouteChange = (route: string) => {
     setCurrentRoute(route);
   };
-
-  const weekend = !isWeekday();
 
   return (
     <>
@@ -88,16 +118,21 @@ export function App() {
           onStopChange={handleStopChange}
         />
         {/* Show general alerts (not train-specific) at top if there are any */}
-        {generalAlerts.length > 0 && (
+        {filteredAlerts.length > 0 && (
           <AlertList
-            alerts={generalAlerts}
+            alerts={filteredAlerts}
             loading={alertsLoading}
             error={alertsError}
           />
         )}
+        {/* Show gameday banner when gameday train is in TODAY's departures */}
+        <GamedayBanner
+          theme={gamedayTheme}
+          visible={hasGamedayTrainToday}
+        />
         <TrainList
           trainsByDirection={trainsByDirection}
-          isWeekend={weekend}
+          serviceContext={serviceContext}
           hasStop={!!currentStop}
           currentRoute={currentRoute}
         />

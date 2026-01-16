@@ -5,6 +5,8 @@ import {
   extractDelayMinutes,
   formatAlertMessage,
   parseTrainAlerts,
+  detectTeamFromAlerts,
+  alertMentionsTeam,
 } from './parseTrainAlerts';
 import {
   ALERT_TRAIN_DELAYED,
@@ -332,6 +334,87 @@ describe('parseTrainAlerts', () => {
 
       expect(result.trainAlerts.size).toBe(0);
       expect(result.generalAlerts).toHaveLength(0);
+    });
+  });
+
+  describe('detectTeamFromAlerts', () => {
+    const createAlert = (text: string) => ({
+      id: 'test-alert',
+      alert: {
+        header_text: { translation: [{ text }] },
+        description_text: { translation: [{ text: '' }] },
+      },
+    });
+
+    it('detects Seahawks from alert text', () => {
+      const alerts = [createAlert('Extra service for Seahawks game')];
+      expect(detectTeamFromAlerts(alerts)).toBe('seahawks');
+    });
+
+    it('detects Mariners from alert text', () => {
+      const alerts = [createAlert('Special trains for Mariners game tonight')];
+      expect(detectTeamFromAlerts(alerts)).toBe('mariners');
+    });
+
+    it('detects team from description', () => {
+      const alert = {
+        id: 'test',
+        alert: {
+          header_text: { translation: [{ text: 'Gameday Service' }] },
+          description_text: { translation: [{ text: 'Running for Seahawks vs Cardinals' }] },
+        },
+      };
+      expect(detectTeamFromAlerts([alert])).toBe('seahawks');
+    });
+
+    it('returns null when no team mentioned', () => {
+      const alerts = [createAlert('Regular gameday service available')];
+      expect(detectTeamFromAlerts(alerts)).toBe(null);
+    });
+
+    it('returns null for empty alerts', () => {
+      expect(detectTeamFromAlerts([])).toBe(null);
+    });
+
+    it('is case insensitive', () => {
+      const alerts = [createAlert('SEAHAWKS gameday trains running')];
+      expect(detectTeamFromAlerts(alerts)).toBe('seahawks');
+    });
+
+    it('prioritizes Seahawks if both teams mentioned', () => {
+      // First match wins
+      const alerts = [createAlert('Seahawks and Mariners games today')];
+      expect(detectTeamFromAlerts(alerts)).toBe('seahawks');
+    });
+  });
+
+  describe('alertMentionsTeam', () => {
+    const createAlert = (text: string) => ({
+      id: 'test-alert',
+      alert: {
+        header_text: { translation: [{ text }] },
+        description_text: { translation: [{ text: '' }] },
+      },
+    });
+
+    it('returns true when alert mentions Seahawks', () => {
+      const alert = createAlert('Seahawks gameday service');
+      expect(alertMentionsTeam(alert, 'seahawks')).toBe(true);
+    });
+
+    it('returns true when alert mentions Mariners', () => {
+      const alert = createAlert('Mariners night game service');
+      expect(alertMentionsTeam(alert, 'mariners')).toBe(true);
+    });
+
+    it('returns false when alert does not mention team', () => {
+      const alert = createAlert('Regular gameday service');
+      expect(alertMentionsTeam(alert, 'seahawks')).toBe(false);
+    });
+
+    it('is case insensitive', () => {
+      const alert = createAlert('MARINERS GAME');
+      expect(alertMentionsTeam(alert, 'mariners')).toBe(true);
     });
   });
 });
