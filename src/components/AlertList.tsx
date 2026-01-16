@@ -1,14 +1,19 @@
 import { memo } from 'react';
-import type { AlertEntity } from '../types';
-import { Card, CardBody, Label, EmptyState, Carousel } from './ui';
+import { useExceptionService } from '../context/ExceptionServiceContext';
+import { Card, CardBody, Label, Carousel } from './ui';
 
 interface AlertListProps {
-  alerts: AlertEntity[];
   loading: boolean;
   error: string | null;
 }
 
-export const AlertList = memo(function AlertList({ alerts, loading, error }: AlertListProps) {
+/**
+ * Displays service alerts, excluding any that are "consumed" by the exception service banner.
+ * Subscribes to ExceptionServiceContext for filtered alerts.
+ */
+export const AlertList = memo(function AlertList({ loading, error }: AlertListProps) {
+  const { filteredAlerts } = useExceptionService();
+
   // Handle loading and error states
   if (loading) {
     return (
@@ -30,27 +35,19 @@ export const AlertList = memo(function AlertList({ alerts, loading, error }: Ale
     );
   }
 
-  if (alerts.length === 0) {
-    return (
-      <Card>
-        <CardBody>
-          <EmptyState
-            title="No active alerts"
-            subtitle="All systems operating normally"
-          />
-        </CardBody>
-      </Card>
-    );
+  // No alerts to display (either none exist, or all consumed by banner)
+  if (filteredAlerts.length === 0) {
+    return null;
   }
 
   return (
     <Card>
       <Carousel
         header={<Label>SERVICE ALERTS</Label>}
-        showDots={alerts.length > 1}
+        showDots={filteredAlerts.length > 1}
         hintText="Swipe for more alerts"
       >
-        {alerts.map((entity, index) => {
+        {filteredAlerts.map((entity, index) => {
           const alertData = entity?.alert;
           const header = alertData?.header_text?.translation?.[0]?.text || 'Alert';
           const desc = alertData?.description_text?.translation?.[0]?.text || '';

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { getTrainsByDirection } from '../utils/schedule';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { getTrainsByDirection, getServiceContext } from '../utils/schedule';
 import { UPDATE_INTERVAL_MS, DEPARTING_DURATION_MS } from '../utils/constants';
-import type { ScheduleData, NextTrain, DirectionTrains, TrainAlert } from '../types';
+import type { ScheduleData, NextTrain, DirectionTrains, TrainAlert, ServiceContext } from '../types';
 
 interface UseTrainScheduleOptions {
   scheduleData: ScheduleData;
@@ -12,6 +12,7 @@ interface UseTrainScheduleOptions {
 
 interface UseTrainScheduleResult {
   trainsByDirection: DirectionTrains[];
+  serviceContext: ServiceContext;
 }
 
 /**
@@ -100,5 +101,11 @@ export function useTrainSchedule({
     return () => clearInterval(interval);
   }, [updateTrains]);
 
-  return { trainsByDirection };
+  // Compute service context (route-aware, based on actual trains available)
+  const serviceContext = useMemo(
+    () => getServiceContext(scheduleData, route, trainsByDirection.length > 0),
+    [scheduleData, route, trainsByDirection.length]
+  );
+
+  return { trainsByDirection, serviceContext };
 }

@@ -2,7 +2,36 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TEST_TIMES } from '../../tests/fixtures/time';
 import { TrainList } from './TrainList';
-import type { DirectionTrains } from '../types';
+import type { DirectionTrains, ServiceContext } from '../types';
+
+// Helper service contexts for testing
+const weekdayServiceContext: ServiceContext = {
+  hasService: true,
+  hasExceptionService: false,
+  exceptionServiceType: null,
+  isWeekendWithNoService: false,
+};
+
+const weekendNoServiceContext: ServiceContext = {
+  hasService: false,
+  hasExceptionService: false,
+  exceptionServiceType: null,
+  isWeekendWithNoService: true,
+};
+
+const noServiceContext: ServiceContext = {
+  hasService: false,
+  hasExceptionService: false,
+  exceptionServiceType: null,
+  isWeekendWithNoService: false,
+};
+
+const gamedayServiceContext: ServiceContext = {
+  hasService: true,
+  hasExceptionService: true,
+  exceptionServiceType: 'gameday',
+  isWeekendWithNoService: false,
+};
 
 // Mock train data for testing
 const mockSingleDirection: DirectionTrains[] = [
@@ -69,7 +98,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={[]}
-          isWeekend={true}
+          serviceContext={weekendNoServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -85,13 +114,30 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={true}
+          serviceContext={weekendNoServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
       );
 
       expect(screen.getByText('No trains on weekends')).toBeInTheDocument();
+    });
+
+    it('shows trains on weekend when gameday service is active', () => {
+      vi.setSystemTime(TEST_TIMES.SUNDAY_MORNING);
+
+      render(
+        <TrainList
+          trainsByDirection={mockSingleDirection}
+          serviceContext={gamedayServiceContext}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      // Should NOT show weekend message, should show trains
+      expect(screen.queryByText('No trains on weekends')).not.toBeInTheDocument();
+      expect(screen.getByText(/to Everett Station/)).toBeInTheDocument();
     });
   });
 
@@ -102,7 +148,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={[]}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={false}
           currentRoute="n-line"
         />
@@ -118,7 +164,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={[]}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -126,6 +172,22 @@ describe('TrainList', () => {
 
       expect(screen.getByText('No trains available')).toBeInTheDocument();
       expect(screen.getByText('Check back later for upcoming departures')).toBeInTheDocument();
+    });
+
+    it('shows "No service today" when no service but not a weekend', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+
+      render(
+        <TrainList
+          trainsByDirection={[]}
+          serviceContext={noServiceContext}
+          hasStop={true}
+          currentRoute="n-line"
+        />
+      );
+
+      expect(screen.getByText('No service today')).toBeInTheDocument();
+      expect(screen.getByText('Check back for the next operating day')).toBeInTheDocument();
     });
   });
 
@@ -136,7 +198,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -152,7 +214,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -168,7 +230,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -184,7 +246,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -199,7 +261,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -218,7 +280,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockTomorrowTrains}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="s-line"
         />
@@ -233,7 +295,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockTomorrowTrains}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="s-line"
         />
@@ -252,7 +314,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockMultipleDirections}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="s-line"
         />
@@ -269,7 +331,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockMultipleDirections}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="s-line"
         />
@@ -291,7 +353,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -309,7 +371,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -324,7 +386,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockMultipleDirections}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="s-line"
         />
@@ -342,7 +404,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockDepartingTrain}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -357,7 +419,7 @@ describe('TrainList', () => {
       const { container } = render(
         <TrainList
           trainsByDirection={mockDepartingTrain}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -466,7 +528,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockTrainWithDelayAlert}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -481,7 +543,7 @@ describe('TrainList', () => {
       render(
         <TrainList
           trainsByDirection={mockTrainWithCancelledAlert}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -496,7 +558,7 @@ describe('TrainList', () => {
       const { container } = render(
         <TrainList
           trainsByDirection={mockTrainWithDelayAlert}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -511,7 +573,7 @@ describe('TrainList', () => {
       const { container } = render(
         <TrainList
           trainsByDirection={mockTrainWithCancelledAlert}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -527,7 +589,7 @@ describe('TrainList', () => {
       const { container } = render(
         <TrainList
           trainsByDirection={mockSecondaryTrainWithAlert}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -547,7 +609,7 @@ describe('TrainList', () => {
       const { container } = render(
         <TrainList
           trainsByDirection={mockSecondaryTrainWithAlert}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
@@ -564,7 +626,7 @@ describe('TrainList', () => {
       const { container } = render(
         <TrainList
           trainsByDirection={mockSingleDirection}
-          isWeekend={false}
+          serviceContext={weekdayServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />

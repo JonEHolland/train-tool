@@ -20,6 +20,9 @@ import {
   EmptyState,
   colors,
 } from '../components/ui';
+import { SpecialServiceBanner } from '../components/SpecialServiceBanner';
+import { ExceptionServiceProvider } from '../context/ExceptionServiceContext';
+import type { DirectionTrains, AlertEntity } from '../types';
 import type { Severity, CountdownVariant } from '../components/ui';
 
 export function ComponentShowcase() {
@@ -250,6 +253,33 @@ export function ComponentShowcase() {
         )}
       </Section>
 
+      {/* Special Service Banner */}
+      <Section title="Special Service Banner">
+        <Caption muted style={{ display: 'block', marginBottom: 'var(--spacing-4)' }}>
+          Banners for exception services (gameday, fair, reduced, etc.)
+        </Caption>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+          {/* Seahawks gameday */}
+          <BannerDemo
+            trains={createMockTrains('gameday')}
+            alerts={[{ id: '1', alert: { header_text: { translation: [{ text: 'Seahawks game' }] } } }]}
+          />
+          {/* Mariners gameday */}
+          <BannerDemo
+            trains={createMockTrains('gameday')}
+            alerts={[{ id: '1', alert: { header_text: { translation: [{ text: 'Mariners game' }] } } }]}
+          />
+          {/* Generic gameday */}
+          <BannerDemo trains={createMockTrains('gameday')} alerts={[]} />
+          {/* Fair */}
+          <BannerDemo trains={createMockTrains('fair')} alerts={[]} />
+          {/* Reduced */}
+          <BannerDemo trains={createMockTrains('reduced')} alerts={[]} />
+          {/* Special */}
+          <BannerDemo trains={createMockTrains('special')} alerts={[]} />
+        </div>
+      </Section>
+
       {/* Carousel */}
       <Section title="Carousel">
         <Card>
@@ -409,6 +439,30 @@ export function ComponentShowcase() {
         </Card>
       </Section>
     </div>
+  );
+}
+
+// Helper to create mock train data for special service banner showcase
+function createMockTrains(type: 'gameday' | 'fair' | 'reduced' | 'special'): DirectionTrains[] {
+  return [{
+    directionName: 'Seattle',
+    trains: [{
+      destination: 'Seattle',
+      time: '10:00 AM',
+      minutesAway: 30,
+      isTomorrow: false,
+      isExceptionService: true,
+      exceptionServiceType: type,
+    }],
+  }];
+}
+
+// Wrapper to demo SpecialServiceBanner with its required context
+function BannerDemo({ trains, alerts }: { trains: DirectionTrains[]; alerts: AlertEntity[] }) {
+  return (
+    <ExceptionServiceProvider trainsByDirection={trains} alerts={alerts}>
+      <SpecialServiceBanner />
+    </ExceptionServiceProvider>
   );
 }
 

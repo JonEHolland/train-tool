@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import type { DirectionTrains, NextTrain } from '../types';
+import type { DirectionTrains, NextTrain, ServiceContext } from '../types';
 import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/time';
 import { URGENCY_THRESHOLDS, PROGRESS_MAX_MINUTES } from '../utils/constants';
 import { getDirectionArrow } from '../utils/trainDirection';
@@ -32,7 +32,7 @@ function getUrgencyColor(minutesAway: number, isDeparting: boolean): string {
 
 interface TrainListProps {
   trainsByDirection: DirectionTrains[];
-  isWeekend: boolean;
+  serviceContext: ServiceContext;
   hasStop: boolean;
   currentRoute?: string;
 }
@@ -56,7 +56,7 @@ function getTrainRingColor(train: NextTrain, isDeparting: boolean): string {
   return getUrgencyColor(train.minutesAway, isDeparting);
 }
 
-export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute }: TrainListProps) {
+export function TrainList({ trainsByDirection, serviceContext, hasStop, currentRoute }: TrainListProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const prevMinutesRef = useRef<number | null>(null);
@@ -87,13 +87,28 @@ export function TrainList({ trainsByDirection, isWeekend, hasStop, currentRoute 
     prevMinutesRef.current = currentMinutes;
   }, [currentMinutes]);
 
-  if (isWeekend) {
+  // Show appropriate empty state based on service context
+  if (serviceContext.isWeekendWithNoService) {
     return (
       <Card>
         <CardBody>
           <EmptyState
             title="No trains on weekends"
             subtitle="Service resumes Monday morning"
+          />
+        </CardBody>
+      </Card>
+    );
+  }
+
+  // No service today but not a regular weekend (e.g., holiday)
+  if (!serviceContext.hasService) {
+    return (
+      <Card>
+        <CardBody>
+          <EmptyState
+            title="No service today"
+            subtitle="Check back for the next operating day"
           />
         </CardBody>
       </Card>

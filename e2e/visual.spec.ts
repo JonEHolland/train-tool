@@ -171,4 +171,5 @@ test.describe('Visual Regression', () => {
       maxDiffPixels: 100,
     });
   });
+
 });

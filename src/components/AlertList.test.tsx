@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AlertList } from './AlertList';
-import type { AlertEntity } from '../types';
+import { ExceptionServiceProvider } from '../context/ExceptionServiceContext';
+import type { AlertEntity, DirectionTrains } from '../types';
 
 // Helper to create mock alert entities
 function createMockAlert(
@@ -23,28 +24,38 @@ function createMockAlert(
   };
 }
 
+// Empty trains array for context (no exception service)
+const emptyTrains: DirectionTrains[] = [];
+
+// Helper to render AlertList with required context
+function renderAlertList(alerts: AlertEntity[], loading = false, error: string | null = null) {
+  return render(
+    <ExceptionServiceProvider trainsByDirection={emptyTrains} alerts={alerts}>
+      <AlertList loading={loading} error={error} />
+    </ExceptionServiceProvider>
+  );
+}
+
 describe('AlertList', () => {
   describe('loading state', () => {
     it('displays loading message when loading', () => {
-      render(<AlertList alerts={[]} loading={true} error={null} />);
+      renderAlertList([], true, null);
       expect(screen.getByText('Loading alerts...')).toBeInTheDocument();
     });
   });
 
   describe('error state', () => {
     it('displays error message when there is an error', () => {
-      render(
-        <AlertList alerts={[]} loading={false} error="Failed to fetch alerts" />
-      );
+      renderAlertList([], false, 'Failed to fetch alerts');
       expect(screen.getByText('Failed to fetch alerts')).toBeInTheDocument();
     });
   });
 
   describe('empty state', () => {
-    it('displays empty state when there are no alerts', () => {
-      render(<AlertList alerts={[]} loading={false} error={null} />);
-      expect(screen.getByText('No active alerts')).toBeInTheDocument();
-      expect(screen.getByText('All systems operating normally')).toBeInTheDocument();
+    it('renders nothing when there are no alerts', () => {
+      const { container } = renderAlertList([], false, null);
+      // Component returns null when no alerts - no card should be present
+      expect(container.querySelector('.card')).toBeNull();
     });
   });
 
@@ -52,17 +63,17 @@ describe('AlertList', () => {
     const singleAlert = [createMockAlert('Train Delay', 'The 5:30 train is delayed by 10 minutes.')];
 
     it('displays alert header', () => {
-      render(<AlertList alerts={singleAlert} loading={false} error={null} />);
+      renderAlertList(singleAlert, false, null);
       expect(screen.getByText('Train Delay')).toBeInTheDocument();
     });
 
     it('displays alert description', () => {
-      render(<AlertList alerts={singleAlert} loading={false} error={null} />);
+      renderAlertList(singleAlert, false, null);
       expect(screen.getByText('The 5:30 train is delayed by 10 minutes.')).toBeInTheDocument();
     });
 
     it('displays SERVICE ALERTS label', () => {
-      render(<AlertList alerts={singleAlert} loading={false} error={null} />);
+      renderAlertList(singleAlert, false, null);
       expect(screen.getByText('SERVICE ALERTS')).toBeInTheDocument();
     });
 
@@ -72,7 +83,7 @@ describe('AlertList', () => {
         createMockAlert('Second Alert', 'Description of second alert', 'alert-2'),
         createMockAlert('Third Alert', 'Description of third alert', 'alert-3'),
       ];
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
+      renderAlertList(multipleAlerts, false, null);
 
       // With sliding carousel, all alerts are rendered in DOM
       expect(screen.getByText('First Alert')).toBeInTheDocument();
@@ -85,7 +96,7 @@ describe('AlertList', () => {
         createMockAlert('First', 'Desc 1', 'a1'),
         createMockAlert('Second', 'Desc 2', 'a2'),
       ];
-      render(<AlertList alerts={multipleAlerts} loading={false} error={null} />);
+      renderAlertList(multipleAlerts, false, null);
       expect(screen.getByText('Swipe for more alerts (1/2)')).toBeInTheDocument();
     });
   });
@@ -95,7 +106,7 @@ describe('AlertList', () => {
       const longDescription = 'A'.repeat(250);
       const alert = [createMockAlert('Long Alert', longDescription)];
 
-      render(<AlertList alerts={alert} loading={false} error={null} />);
+      renderAlertList(alert, false, null);
 
       // Should show first 200 characters followed by "..."
       const expectedText = 'A'.repeat(200) + '...';
@@ -106,7 +117,7 @@ describe('AlertList', () => {
       const shortDescription = 'A'.repeat(100);
       const alert = [createMockAlert('Short Alert', shortDescription)];
 
-      render(<AlertList alerts={alert} loading={false} error={null} />);
+      renderAlertList(alert, false, null);
 
       expect(screen.getByText(shortDescription)).toBeInTheDocument();
     });
@@ -115,7 +126,7 @@ describe('AlertList', () => {
       const exactDescription = 'B'.repeat(200);
       const alert = [createMockAlert('Exact Alert', exactDescription)];
 
-      render(<AlertList alerts={alert} loading={false} error={null} />);
+      renderAlertList(alert, false, null);
 
       expect(screen.getByText(exactDescription)).toBeInTheDocument();
     });
@@ -134,7 +145,7 @@ describe('AlertList', () => {
         },
       };
 
-      render(<AlertList alerts={[alertWithoutHeader]} loading={false} error={null} />);
+      renderAlertList([alertWithoutHeader], false, null);
       expect(screen.getByText('Alert')).toBeInTheDocument();
     });
 
@@ -150,8 +161,42 @@ describe('AlertList', () => {
         },
       };
 
-      render(<AlertList alerts={[alertWithoutDesc]} loading={false} error={null} />);
+      renderAlertList([alertWithoutDesc], false, null);
       expect(screen.getByText('Header Only')).toBeInTheDocument();
+    });
+  });
+
+  describe('alert filtering via context', () => {
+    it('filters out team alerts when exception service banner is shown', () => {
+      // Create trains with gameday exception
+      const gamedayTrains: DirectionTrains[] = [{
+        directionName: 'Seattle',
+        trains: [{
+          destination: 'Seattle',
+          time: '10:00 AM',
+          minutesAway: 30,
+          isTomorrow: false,
+          isExceptionService: true,
+          exceptionServiceType: 'gameday',
+        }],
+      }];
+
+      // Alerts include Seahawks alert (should be filtered) and another alert (should remain)
+      const alerts = [
+        createMockAlert('Seahawks Game', 'Special service for Seahawks', 'seahawks-alert'),
+        createMockAlert('Track Work', 'Maintenance on tracks', 'track-alert'),
+      ];
+
+      render(
+        <ExceptionServiceProvider trainsByDirection={gamedayTrains} alerts={alerts}>
+          <AlertList loading={false} error={null} />
+        </ExceptionServiceProvider>
+      );
+
+      // Seahawks alert should be filtered out (consumed by banner)
+      expect(screen.queryByText('Seahawks Game')).not.toBeInTheDocument();
+      // Other alert should remain
+      expect(screen.getByText('Track Work')).toBeInTheDocument();
     });
   });
 });
