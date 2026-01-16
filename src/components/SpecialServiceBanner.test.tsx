@@ -102,7 +102,7 @@ describe('SpecialServiceBanner', () => {
       }];
       renderBanner(trains, alerts);
       expect(screen.getByText('🏈')).toBeInTheDocument();
-      expect(screen.getByText('Seahawks Gameday')).toBeInTheDocument();
+      expect(screen.getByText('Seahawks Gameday Service')).toBeInTheDocument();
     });
 
     it('shows Mariners theme when alert mentions Mariners', () => {
@@ -116,7 +116,7 @@ describe('SpecialServiceBanner', () => {
       }];
       renderBanner(trains, alerts);
       expect(screen.getByText('⚾')).toBeInTheDocument();
-      expect(screen.getByText('Mariners Gameday')).toBeInTheDocument();
+      expect(screen.getByText('Mariners Gameday Service')).toBeInTheDocument();
     });
   });
 });

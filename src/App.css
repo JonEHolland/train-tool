@@ -519,59 +519,99 @@ body {
 .special-service-banner {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-4);
   margin-bottom: var(--spacing-4);
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: 0.02em;
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
 }
 
 .special-service-banner-icon {
-  font-size: 1.25rem;
+  font-size: 1.75rem;
+  flex-shrink: 0;
 }
 
-.special-service-banner-text {
-  text-transform: uppercase;
+.special-service-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-/* Gameday generic theme (gold/navy) */
-.special-service-banner--gameday {
-  background: linear-gradient(135deg, #FFD700 0%, #FFC000 100%);
-  color: #0A1628;
+.special-service-banner-title {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.3;
 }
 
-/* Seahawks theme (action green/college navy) */
+.special-service-banner-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  line-height: 1.3;
+}
+
+/* Seahawks theme - Action Green with neon glow border */
 .special-service-banner--seahawks {
   background: linear-gradient(135deg, #69BE28 0%, #4DA324 100%);
-  color: #002244;
+  color: #FFFFFF;
+  border: 2px solid #A3FF50;
+  box-shadow:
+    0 0 20px rgba(163, 255, 80, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Mariners theme (NW green/navy) */
+.special-service-banner--seahawks .special-service-banner-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Mariners theme - NW Green/Teal gradient */
 .special-service-banner--mariners {
   background: linear-gradient(135deg, #005C5C 0%, #004D4D 100%);
   color: #FFFFFF;
+  box-shadow:
+    0 0 16px rgba(0, 92, 92, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Fair theme (purple/gold - WA State Fair) */
-.special-service-banner--fair {
-  background: linear-gradient(135deg, #7B2D8E 0%, #5E2068 100%);
-  color: #FFD700;
-}
-
-/* Reduced service theme (amber/warning) */
-.special-service-banner--reduced {
-  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+/* Gameday generic theme - Teal like Mariners but neutral */
+.special-service-banner--gameday {
+  background: linear-gradient(135deg, #1A5F5F 0%, #134848 100%);
   color: #FFFFFF;
 }
 
-/* Special/other theme (gold/navy) */
+/* Fair theme - Purple with gold accents (WA State Fair) */
+.special-service-banner--fair {
+  background: linear-gradient(135deg, #7B2D8E 0%, #5E2068 100%);
+  color: #FFFFFF;
+  border: 2px solid #C77DFF;
+  box-shadow:
+    0 0 16px rgba(199, 125, 255, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.special-service-banner--fair .special-service-banner-subtitle {
+  color: #FFD700;
+}
+
+/* Reduced service theme - Amber/warning tone */
+.special-service-banner--reduced {
+  background: linear-gradient(135deg, #B45309 0%, #92400E 100%);
+  color: #FFFFFF;
+  border: 2px solid #F59E0B;
+  box-shadow:
+    0 0 16px rgba(245, 158, 11, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Special/other theme - Accent teal matching app theme */
 .special-service-banner--special {
-  background: linear-gradient(135deg, #FFD700 0%, #FFC000 100%);
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, #4ECDC4 100%);
   color: #0A1628;
+  box-shadow:
+    0 0 16px rgba(95, 234, 212, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.special-service-banner--special .special-service-banner-subtitle {
+  color: rgba(10, 22, 40, 0.75);
 }
 
 /* ==========================================================================

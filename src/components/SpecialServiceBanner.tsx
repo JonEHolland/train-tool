@@ -1,5 +1,11 @@
 import { useExceptionService, type ExceptionServiceTheme } from '../context/ExceptionServiceContext';
 
+interface BannerConfig {
+  icon: string;
+  title: string;
+  subtitle: string;
+}
+
 /**
  * Banner displayed when exception service (gameday, fair, reduced, etc.) is active.
  * Subscribes to ExceptionServiceContext for theme - no props needed.
@@ -9,47 +15,56 @@ export function SpecialServiceBanner() {
 
   if (!theme) return null;
 
-  const icon = getIcon(theme);
-  const text = getText(theme);
+  const config = getBannerConfig(theme);
 
   return (
     <div className={`special-service-banner special-service-banner--${theme}`}>
-      <span className="special-service-banner-icon">{icon}</span>
-      <span className="special-service-banner-text">{text}</span>
+      <span className="special-service-banner-icon">{config.icon}</span>
+      <div className="special-service-banner-content">
+        <span className="special-service-banner-title">{config.title}</span>
+        <span className="special-service-banner-subtitle">{config.subtitle}</span>
+      </div>
     </div>
   );
 }
 
-function getIcon(theme: ExceptionServiceTheme): string {
+function getBannerConfig(theme: ExceptionServiceTheme): BannerConfig {
   switch (theme) {
     case 'seahawks':
-      return '🏈';
+      return {
+        icon: '🏈',
+        title: 'Seahawks Gameday Service',
+        subtitle: 'Special trains running to King Street Station',
+      };
     case 'mariners':
-      return '⚾';
+      return {
+        icon: '⚾',
+        title: 'Mariners Gameday Service',
+        subtitle: 'Special trains running to King Street Station',
+      };
     case 'gameday':
-      return '🏈⚾';
+      return {
+        icon: '🏈⚾',
+        title: 'Gameday Service',
+        subtitle: 'Special event trains in service',
+      };
     case 'fair':
-      return '🎡';
+      return {
+        icon: '🎡',
+        title: 'State Fair Service',
+        subtitle: 'Special trains to Puyallup',
+      };
     case 'reduced':
-      return '📅';
+      return {
+        icon: '📅',
+        title: 'Reduced Service',
+        subtitle: 'Limited schedule in effect',
+      };
     case 'special':
-      return '⭐';
-  }
-}
-
-function getText(theme: ExceptionServiceTheme): string {
-  switch (theme) {
-    case 'seahawks':
-      return 'Seahawks Gameday';
-    case 'mariners':
-      return 'Mariners Gameday';
-    case 'gameday':
-      return 'Gameday Service';
-    case 'fair':
-      return 'State Fair Service';
-    case 'reduced':
-      return 'Reduced Service';
-    case 'special':
-      return 'Special Service';
+      return {
+        icon: '⭐',
+        title: 'Special Service',
+        subtitle: 'Modified schedule in effect',
+      };
   }
 }
