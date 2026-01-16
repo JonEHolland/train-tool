@@ -23,7 +23,9 @@ npm run fetch-data   # Update GTFS schedule data
 ### File Locations
 | Purpose | Location |
 |---------|----------|
-| Main app logic | `src/App.tsx` |
+| Root app shell | `src/App.tsx` |
+| Main train schedule UI | `src/pages/HomePage.tsx` |
+| Exception service context | `src/context/ExceptionServiceContext.tsx` |
 | Type definitions | `src/types.ts` |
 | Design system (CSS vars) | `src/App.css` (lines 1-57) |
 | Time utilities | `src/utils/time.ts` |
@@ -123,13 +125,14 @@ Not all suggested improvements are worth implementing. Skip or simplify when:
 
 ### Test Coverage Expectations
 Current test counts (update these when adding significant test suites):
-- **Unit tests:** ~420 tests
+- **Unit tests:** ~472 tests
 - **E2E tests:** ~38 tests
 
 When adding new utilities, aim for comprehensive test coverage:
-- `src/utils/schedule.ts` → 19 tests
+- `src/utils/schedule.ts` → 38 tests
 - `src/utils/trainDirection.ts` → 18 tests
-- `src/hooks/useTrainSchedule.ts` → 10 tests
+- `src/hooks/useTrainSchedule.ts` → 13 tests
+- `src/components/SpecialServiceBanner.test.tsx` → 17 tests
 
 ---
 
@@ -137,16 +140,19 @@ When adding new utilities, aim for comprehensive test coverage:
 
 ### Component Hierarchy
 ```
-App.tsx (orchestrator)
+App.tsx (root shell)
 ├── UpdateBanner (PWA updates)
-├── RouteSelect (N-Line / S-Line toggle)
-├── StopSelect (station dropdown)
-├── AlertList (service alerts carousel)
-├── TrainList (main display)
-│   ├── Destination tabs (if multiple)
-│   ├── Hero section (CircularProgress ring)
-│   └── Secondary train list
-└── Disclaimer (footer)
+└── HomePage (main train schedule)
+    ├── RouteSelect (N-Line / S-Line toggle)
+    ├── StopSelect (station dropdown)
+    ├── ExceptionServiceProvider (context for alert filtering)
+    │   ├── AlertList (service alerts carousel)
+    │   └── SpecialServiceBanner (gameday/fair/reduced/special)
+    ├── TrainList (main display)
+    │   ├── Destination tabs (if multiple)
+    │   ├── Hero section (CircularProgress ring)
+    │   └── Secondary train list
+    └── Disclaimer (footer)
 ```
 
 ### Data Flow
@@ -157,21 +163,56 @@ schedule.ts: getActiveServices() → filters by calendar
          ↓
 schedule.ts: getTrainsByDirection() → calculates minutesAway
          ↓
-useTrainSchedule() hook → manages departing state + attaches alerts
+useTrainSchedule() hook → manages departing state + attaches train alerts
          ↓
-useAlerts() hook → fetches & parses alerts
+useAlerts() hook → fetches & parses alerts (trainAlerts + generalAlerts)
          ↓
-parseTrainAlerts() → maps alerts to train numbers
+ExceptionServiceProvider → computes banner theme + filters general alerts
          ↓
-TrainList → renders with urgency colors + alerts
-         ↓
-trainDirection.ts: getDirectionArrow() → determines ↑/↓ arrows
+┌────────────────────────────┬─────────────────────────────┐
+│                            │                             │
+↓                            ↓                             ↓
+SpecialServiceBanner    AlertList                    TrainList
+(reads theme)           (reads filteredAlerts)       (renders trains)
 ```
 
 ### State Management
-- **No Redux/Zustand** - React useState + custom hooks
-- **Persisted:** `sounder-route`, `sounder-stop` (via useLocalStorage)
+- **No Redux/Zustand** - React useState + custom hooks + React Context
+- **Persisted:** `sounder-route`, `sounder-stops` (via useLocalStorage)
 - **Transient:** trainsByDirection, alerts, activeTab
+- **Context:** ExceptionServiceContext for alert filtering pub/sub
+
+### Exception Service Context Pattern
+
+The `ExceptionServiceContext` decouples alert filtering from component rendering using React's pub/sub pattern:
+
+```tsx
+// Provider computes once, components subscribe independently
+<ExceptionServiceProvider trainsByDirection={trainsByDirection} alerts={generalAlerts}>
+  <AlertList />           {/* subscribes to filteredAlerts */}
+  <SpecialServiceBanner /> {/* subscribes to theme */}
+</ExceptionServiceProvider>
+```
+
+**Why this pattern:**
+- Alert filtering depends on banner theme (team alerts are "consumed" by team banners)
+- Components shouldn't know about each other
+- Single computation, multiple subscribers
+
+**Exception Service Types:**
+| Type | Icon | Banner Text | Colors |
+|------|------|-------------|--------|
+| `seahawks` | 🏈 | Seahawks Gameday | Green/Navy |
+| `mariners` | ⚾ | Mariners Gameday | Teal/White |
+| `gameday` | 🏈⚾ | Gameday Service | Gold/Navy |
+| `fair` | 🎡 | State Fair Service | Purple/Gold |
+| `reduced` | 📅 | Reduced Service | Amber/White |
+| `special` | ⭐ | Special Service | Gold/Navy |
+
+**Key exports from `ExceptionServiceContext.tsx`:**
+- `ExceptionServiceProvider` - Wraps components that need exception service state
+- `useExceptionService()` - Hook to subscribe to `{ theme, filteredAlerts }`
+- `computeExceptionServiceState()` - Pure function for testing
 
 ### Key Algorithms
 
@@ -394,6 +435,12 @@ Snapshots are in `e2e/visual.spec.ts-snapshots/` - always review diffs before co
 3. Add domain logic (thresholds, formatting, etc.)
 4. Add tests in `src/components/ComponentName.test.tsx`
 
+### Adding a New Page
+1. Create `src/pages/PageName.tsx`
+2. Add routing logic in `App.tsx` (currently path-based for dev pages)
+3. Keep App.tsx minimal - just routing and global concerns (service worker, etc.)
+4. Page components should be self-contained with their own state and data fetching
+
 ### Modifying Urgency Thresholds
 1. Edit `src/utils/constants.ts` (URGENCY_THRESHOLDS)
 2. Update app components that use thresholds (e.g., TrainList.tsx)
@@ -542,7 +589,7 @@ if (itemCount === 1) {
 
 ```
 src/
-├── App.tsx              # Main orchestrator
+├── App.tsx              # Root shell (service worker, routing)
 ├── App.css              # Design system + global styles
 ├── main.tsx             # Entry point + SW registration
 ├── types.ts             # TypeScript interfaces
@@ -557,13 +604,17 @@ src/
 │   │   ├── Countdown/
 │   │   ├── CircularProgress/
 │   │   └── ...          # 13 components total
-│   ├── AlertList.tsx    # Service alerts carousel
+│   ├── AlertList.tsx    # Service alerts carousel (subscribes to context)
+│   ├── SpecialServiceBanner.tsx  # Exception service banner (subscribes to context)
 │   ├── RouteSelect.tsx  # N/S Line toggle
 │   ├── StopSelect.tsx   # Station dropdown
 │   ├── TrainList.tsx    # Main train display
 │   ├── UpdateBanner.tsx # PWA update notification
 │   └── Disclaimer.tsx   # Footer
+├── context/
+│   └── ExceptionServiceContext.tsx  # Alert filtering pub/sub
 ├── pages/
+│   ├── HomePage.tsx     # Main train schedule page
 │   └── ComponentShowcase.tsx  # Dev-only UI showcase
 ├── hooks/
 │   ├── useAlerts.ts     # Fetch & parse alerts (5-min polling)

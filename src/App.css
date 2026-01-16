@@ -513,10 +513,10 @@ body {
 }
 
 /* ==========================================================================
-   Gameday Banner
+   Special Service Banner
    ========================================================================== */
 
-.gameday-banner {
+.special-service-banner {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -530,30 +530,48 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-.gameday-banner-icon {
+.special-service-banner-icon {
   font-size: 1.25rem;
 }
 
-.gameday-banner-text {
+.special-service-banner-text {
   text-transform: uppercase;
 }
 
-/* Generic gameday theme (gold/navy) */
-.gameday-banner--generic {
+/* Gameday generic theme (gold/navy) */
+.special-service-banner--gameday {
   background: linear-gradient(135deg, #FFD700 0%, #FFC000 100%);
   color: #0A1628;
 }
 
 /* Seahawks theme (action green/college navy) */
-.gameday-banner--seahawks {
+.special-service-banner--seahawks {
   background: linear-gradient(135deg, #69BE28 0%, #4DA324 100%);
   color: #002244;
 }
 
 /* Mariners theme (NW green/navy) */
-.gameday-banner--mariners {
+.special-service-banner--mariners {
   background: linear-gradient(135deg, #005C5C 0%, #004D4D 100%);
   color: #FFFFFF;
+}
+
+/* Fair theme (purple/gold - WA State Fair) */
+.special-service-banner--fair {
+  background: linear-gradient(135deg, #7B2D8E 0%, #5E2068 100%);
+  color: #FFD700;
+}
+
+/* Reduced service theme (amber/warning) */
+.special-service-banner--reduced {
+  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  color: #FFFFFF;
+}
+
+/* Special/other theme (gold/navy) */
+.special-service-banner--special {
+  background: linear-gradient(135deg, #FFD700 0%, #FFC000 100%);
+  color: #0A1628;
 }
 
 /* ==========================================================================
