@@ -135,11 +135,12 @@ test.describe('Train Schedule App', () => {
       await page.addInitScript(getPlaywrightDateMockScript(SATURDAY_AFTERNOON));
     });
 
-    test('shows weekend message on Saturday', async ({ page }) => {
+    test('shows Monday preview trains on Saturday', async ({ page }) => {
       await page.goto('/');
 
-      await expect(page.getByText('No trains on weekends')).toBeVisible();
-      await expect(page.getByText('Service resumes Monday morning')).toBeVisible();
+      // On weekends, we now show Monday preview trains instead of "No trains on weekends"
+      // The hero countdown should show "Monday" (the next service day)
+      await expect(page.locator('.train-hero-countdown').getByText('Monday')).toBeVisible();
     });
   });
 

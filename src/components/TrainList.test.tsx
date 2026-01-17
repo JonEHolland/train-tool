@@ -38,9 +38,9 @@ const mockSingleDirection: DirectionTrains[] = [
   {
     directionName: 'Everett Station',
     trains: [
-      { destination: 'Everett Station', time: '08:05:00', minutesAway: 35, isTomorrow: false },
-      { destination: 'Everett Station', time: '08:33:00', minutesAway: 63, isTomorrow: false },
-      { destination: 'Everett Station', time: '09:15:00', minutesAway: 105, isTomorrow: false },
+      { destination: 'Everett Station', time: '08:05:00', minutesAway: 35 },
+      { destination: 'Everett Station', time: '08:33:00', minutesAway: 63 },
+      { destination: 'Everett Station', time: '09:15:00', minutesAway: 105 },
     ],
   },
 ];
@@ -49,15 +49,15 @@ const mockMultipleDirections: DirectionTrains[] = [
   {
     directionName: 'Tacoma Dome Station',
     trains: [
-      { destination: 'Tacoma Dome Station', time: '17:35:00', minutesAway: 5, isTomorrow: false },
-      { destination: 'Tacoma Dome Station', time: '18:15:00', minutesAway: 45, isTomorrow: false },
+      { destination: 'Tacoma Dome Station', time: '17:35:00', minutesAway: 5 },
+      { destination: 'Tacoma Dome Station', time: '18:15:00', minutesAway: 45 },
     ],
   },
   {
     directionName: 'Lakewood Station',
     trains: [
-      { destination: 'Lakewood Station', time: '17:55:00', minutesAway: 25, isTomorrow: false },
-      { destination: 'Lakewood Station', time: '18:35:00', minutesAway: 65, isTomorrow: false },
+      { destination: 'Lakewood Station', time: '17:55:00', minutesAway: 25 },
+      { destination: 'Lakewood Station', time: '18:35:00', minutesAway: 65 },
     ],
   },
 ];
@@ -66,8 +66,8 @@ const mockTomorrowTrains: DirectionTrains[] = [
   {
     directionName: 'King Street Station',
     trains: [
-      { destination: 'King Street Station', time: '05:15:00', minutesAway: 345, isTomorrow: true },
-      { destination: 'King Street Station', time: '05:45:00', minutesAway: 375, isTomorrow: true },
+      { destination: 'King Street Station', time: '05:15:00', minutesAway: 345, nextDayLabel: 'Tomorrow' },
+      { destination: 'King Street Station', time: '05:45:00', minutesAway: 375, nextDayLabel: 'Tomorrow' },
     ],
   },
 ];
@@ -76,8 +76,8 @@ const mockDepartingTrain: DirectionTrains[] = [
   {
     directionName: 'Everett Station',
     trains: [
-      { destination: 'Everett Station', time: '08:05:00', minutesAway: 0, isTomorrow: false, departingAt: Date.now() - 5000 },
-      { destination: 'Everett Station', time: '08:33:00', minutesAway: 28, isTomorrow: false },
+      { destination: 'Everett Station', time: '08:05:00', minutesAway: 0,departingAt: Date.now() - 5000 },
+      { destination: 'Everett Station', time: '08:33:00', minutesAway: 28 },
     ],
   },
 ];
@@ -108,19 +108,34 @@ describe('TrainList', () => {
       expect(screen.getByText('Service resumes Monday morning')).toBeInTheDocument();
     });
 
-    it('shows weekend message even if train data is provided', () => {
+    it('shows trains instead of weekend message when preview trains are available', () => {
       vi.setSystemTime(TEST_TIMES.SUNDAY_MORNING);
+
+      // Mock Monday preview trains (have nextDayLabel set)
+      const mondayPreviewTrains: DirectionTrains[] = [
+        {
+          directionName: 'Everett Station',
+          trains: [
+            { destination: 'Everett Station', time: '08:05:00', minutesAway: 935, nextDayLabel: 'Monday' },
+            { destination: 'Everett Station', time: '08:33:00', minutesAway: 963, nextDayLabel: 'Monday' },
+          ],
+        },
+      ];
 
       render(
         <TrainList
-          trainsByDirection={mockSingleDirection}
+          trainsByDirection={mondayPreviewTrains}
           serviceContext={weekendNoServiceContext}
           hasStop={true}
           currentRoute="n-line"
         />
       );
 
-      expect(screen.getByText('No trains on weekends')).toBeInTheDocument();
+      // Should NOT show weekend message, should show preview trains
+      expect(screen.queryByText('No trains on weekends')).not.toBeInTheDocument();
+      expect(screen.getByText(/to Everett Station/)).toBeInTheDocument();
+      // First train shows day label instead of minutes countdown
+      expect(screen.getByText('Monday')).toBeInTheDocument();
     });
 
     it('shows trains on weekend when gameday service is active', () => {
@@ -438,7 +453,6 @@ describe('TrainList', () => {
             destination: 'Everett Station',
             time: '08:05:00',
             minutesAway: 35,
-            isTomorrow: false,
             trainNumber: '1700',
             alert: {
               trainNumber: '1700',
@@ -452,7 +466,6 @@ describe('TrainList', () => {
             destination: 'Everett Station',
             time: '08:33:00',
             minutesAway: 63,
-            isTomorrow: false,
             trainNumber: '1702',
           },
         ],
@@ -467,7 +480,6 @@ describe('TrainList', () => {
             destination: 'Everett Station',
             time: '08:05:00',
             minutesAway: 35,
-            isTomorrow: false,
             trainNumber: '1700',
             alert: {
               trainNumber: '1700',
@@ -488,14 +500,12 @@ describe('TrainList', () => {
             destination: 'Everett Station',
             time: '08:05:00',
             minutesAway: 35,
-            isTomorrow: false,
             trainNumber: '1700',
           },
           {
             destination: 'Everett Station',
             time: '08:33:00',
             minutesAway: 63,
-            isTomorrow: false,
             trainNumber: '1702',
             alert: {
               trainNumber: '1702',
@@ -509,7 +519,6 @@ describe('TrainList', () => {
             destination: 'Everett Station',
             time: '09:00:00',
             minutesAway: 90,
-            isTomorrow: false,
             trainNumber: '1704',
             alert: {
               trainNumber: '1704',

@@ -115,6 +115,27 @@ export const TEST_TIMES = {
    * Tuesday, January 6, 2026 at 6:15:15 AM
    */
   TRAIN_JUST_DEPARTED: new Date('2026-01-06T06:15:15'),
+
+  /**
+   * Smart future train test: Friday late night
+   * Friday, January 9, 2026 at 11:30 PM
+   * Expected: Trains should show "Monday" (skipping weekend)
+   */
+  FRIDAY_LATE_NIGHT: new Date('2026-01-09T23:30:00'),
+
+  /**
+   * Smart future train test: Thursday late night
+   * Thursday, January 8, 2026 at 11:30 PM
+   * Expected: Trains should show "Tomorrow" (Friday has service)
+   */
+  THURSDAY_LATE_NIGHT: new Date('2026-01-08T23:30:00'),
+
+  /**
+   * Smart future train test: Wednesday late night
+   * Wednesday, January 7, 2026 at 11:30 PM
+   * Expected: Trains should show "Tomorrow" (Thursday has service)
+   */
+  WEDNESDAY_LATE_NIGHT: new Date('2026-01-07T23:30:00'),
 } as const;
 
 export type TestTimeKey = keyof typeof TEST_TIMES;
@@ -141,6 +162,10 @@ export const TEST_TIME_STRINGS = {
   TRAIN_DANGER: '2026-01-06T06:14:00',    // 1 minute before 6:15 AM train
   TRAIN_WARNING: '2026-01-06T06:12:00',   // 3 minutes before
   TRAIN_NORMAL: '2026-01-06T05:45:00',    // 30 minutes before
+  // Smart future train test times
+  FRIDAY_LATE_NIGHT: '2026-01-09T23:30:00',
+  THURSDAY_LATE_NIGHT: '2026-01-08T23:30:00',
+  WEDNESDAY_LATE_NIGHT: '2026-01-07T23:30:00',
 } as const;
 
 /**

@@ -60,12 +60,10 @@ export function classifyExceptionServiceType(
  *
  * @param data - The schedule data
  * @param route - The route to check service for (e.g., 'n-line', 's-line')
- * @param hasTrains - Whether there are any trains for the current route/stop
  */
 export function getServiceContext(
   data: ScheduleData,
-  route: string,
-  hasTrains: boolean
+  route: string
 ): ServiceContext {
   const today = new Date();
   const dayOfWeek = today.getDay();
@@ -86,7 +84,8 @@ export function getServiceContext(
     }
   }
 
-  const hasService = routeServiceIds.size > 0 || hasTrains;
+  // hasService indicates if there's same-day service (not including preview trains)
+  const hasService = routeServiceIds.size > 0;
 
   // Check if any active route service is exception-only
   let hasExceptionService = false;
@@ -112,17 +111,20 @@ export function getServiceContext(
 }
 
 /**
- * Determines which service IDs are active for today based on calendar rules
+ * Determines which service IDs are active for a given date based on calendar rules
  * and date exceptions.
+ *
+ * @param data - The schedule data containing calendars and exceptions
+ * @param date - The date to check (defaults to current date)
  */
-export function getActiveServices(data: ScheduleData): Set<string> {
-  const today = new Date();
+export function getActiveServices(data: ScheduleData, date?: Date): Set<string> {
+  const targetDate = date ?? new Date();
   // Use local date components, not UTC
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
   const dateStr = `${year}${month}${day}`; // YYYYMMDD in local time
-  const dayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, ...
+  const dayOfWeek = targetDate.getDay(); // 0=Sunday, 1=Monday, ...
   const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
   const todayName = dayNames[dayOfWeek];
 
@@ -161,9 +163,73 @@ export function getActiveServices(data: ScheduleData): Set<string> {
   return activeServices;
 }
 
+/** Result from findNextServiceDay with date info and display label */
+export interface NextServiceDayResult {
+  /** The date when the service next runs */
+  date: Date;
+  /** Number of days from startDate (0 = same day, 1 = tomorrow, etc.) */
+  daysAway: number;
+  /** Display label: "" for today, "Tomorrow" for next day, day name for further */
+  dayLabel: string;
+}
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+
+/**
+ * Finds the next day a service runs, starting from a given date.
+ * Checks up to 7 days ahead (one full week).
+ *
+ * This correctly handles:
+ * - Regular calendar services (weekday schedules)
+ * - Exception-only services (gameday, fair, etc.) via calendarDates exceptions
+ * - Both exception_type "1" (service added) and "2" (service removed)
+ *
+ * @param data - The schedule data
+ * @param serviceId - The service ID to check
+ * @param startDate - The date to start checking from
+ * @returns The next service day info, or null if no service within 7 days
+ */
+export function findNextServiceDay(
+  data: ScheduleData,
+  serviceId: string,
+  startDate: Date
+): NextServiceDayResult | null {
+  for (let daysAway = 0; daysAway <= 7; daysAway++) {
+    const checkDate = new Date(startDate);
+    checkDate.setDate(checkDate.getDate() + daysAway);
+
+    const activeServices = getActiveServices(data, checkDate);
+    if (activeServices.has(serviceId)) {
+      let dayLabel: string;
+      if (daysAway === 0) {
+        dayLabel = '';
+      } else if (daysAway === 1) {
+        dayLabel = 'Tomorrow';
+      } else {
+        dayLabel = DAY_NAMES[checkDate.getDay()];
+      }
+
+      return {
+        date: checkDate,
+        daysAway,
+        dayLabel,
+      };
+    }
+  }
+
+  return null;
+}
+
 /**
  * Gets trains grouped by direction/terminus for a given route and stop.
- * Calculates minutes away and handles day wrapping for tomorrow's trains.
+ * Calculates minutes away and handles smart day wrapping for future trains.
+ *
+ * Features:
+ * - Shows trains for services running today
+ * - Previews trains for exception services (gameday, fair, etc.) running within 7 days
+ * - For trains that have passed today, finds the next day the service runs
+ * - Shows day label: "Tomorrow", "Monday", etc. for future-day trains
+ * - Skips trains whose service doesn't run within 7 days
  */
 export function getTrainsByDirection(
   data: ScheduleData,
@@ -173,7 +239,7 @@ export function getTrainsByDirection(
   const schedule = data.schedule[route];
   if (!schedule) return [];
 
-  const activeServices = getActiveServices(data);
+  const now = new Date();
   const nowMinutes = getCurrentMinutes();
 
   // Group trains by their terminus (headsign)
@@ -181,9 +247,6 @@ export function getTrainsByDirection(
 
   for (const direction of Object.values(schedule.directions)) {
     for (const trip of direction.trips) {
-      // Skip trips that aren't running today
-      if (trip.serviceId && !activeServices.has(trip.serviceId)) continue;
-
       const stopIndex = trip.stops.findIndex(s => s.stopId === stopId);
       if (stopIndex === -1) continue;
 
@@ -193,17 +256,59 @@ export function getTrainsByDirection(
       const stopTime = trip.stops[stopIndex];
       const depMinutes = timeToMinutes(stopTime.departure);
 
-      // Calculate minutes away, wrapping to next day if train already passed today
-      let minutesAway: number;
-      let isTomorrow = false;
+      // Find when this service next runs (starting from today)
+      const nextServiceDay = trip.serviceId
+        ? findNextServiceDay(data, trip.serviceId, now)
+        : null;
 
-      if (depMinutes >= nowMinutes) {
-        // Train departs now or in the future
-        minutesAway = depMinutes - nowMinutes;
+      if (!nextServiceDay) {
+        // Service doesn't run within 7 days - skip this train
+        continue;
+      }
+
+      // Calculate minutes away with smart day handling
+      let minutesAway: number;
+      let nextDayLabel: string | undefined;
+
+      if (nextServiceDay.daysAway === 0) {
+        // Service runs today
+        if (depMinutes >= nowMinutes) {
+          // Train departs now or in the future today
+          minutesAway = depMinutes - nowMinutes;
+          nextDayLabel = undefined;
+        } else {
+          // Train already passed today - find next day this service runs
+          const tomorrow = new Date(now);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+
+          const futureServiceDay = findNextServiceDay(data, trip.serviceId!, tomorrow);
+          if (!futureServiceDay) {
+            // Service doesn't run again within 7 days - skip
+            continue;
+          }
+
+          // Calculate days from today (add 1 since we searched from tomorrow)
+          const daysFromToday = futureServiceDay.daysAway + 1;
+
+          // Calculate minutes: remaining today + full days + departure time
+          const remainingToday = MINUTES_IN_DAY - nowMinutes;
+          const fullDayMinutes = (daysFromToday - 1) * MINUTES_IN_DAY;
+          minutesAway = remainingToday + fullDayMinutes + depMinutes;
+
+          // Set day label
+          nextDayLabel = daysFromToday === 1 ? 'Tomorrow' : DAY_NAMES[futureServiceDay.date.getDay()];
+        }
       } else {
-        // Train already passed today, show tomorrow's departure
-        minutesAway = (MINUTES_IN_DAY - nowMinutes) + depMinutes;
-        isTomorrow = true;
+        // Service runs on a future day (preview for exception services)
+        const daysFromToday = nextServiceDay.daysAway;
+
+        // Calculate minutes: remaining today + (daysFromToday - 1) full days + departure time
+        const remainingToday = MINUTES_IN_DAY - nowMinutes;
+        const fullDayMinutes = (daysFromToday - 1) * MINUTES_IN_DAY;
+        minutesAway = remainingToday + fullDayMinutes + depMinutes;
+
+        // Set day label
+        nextDayLabel = daysFromToday === 1 ? 'Tomorrow' : DAY_NAMES[nextServiceDay.date.getDay()];
       }
 
       const terminus = trip.headsign || 'Unknown';
@@ -221,7 +326,7 @@ export function getTrainsByDirection(
         destination: terminus,
         time: stopTime.departure,
         minutesAway,
-        isTomorrow,
+        nextDayLabel,
         trainNumber: extractTrainNumber(trip.tripId),
         isExceptionService: isException || undefined,
         exceptionServiceType: exceptionType,

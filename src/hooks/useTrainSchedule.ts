@@ -52,7 +52,7 @@ export function useTrainSchedule({
       for (const train of direction.trains) {
         const key = `${direction.directionName}-${train.time}`;
 
-        if (train.minutesAway < 1 && !train.isTomorrow) {
+        if (train.minutesAway < 1 && !train.nextDayLabel) {
           // Train is departing or has departed
           if (!departingMap.has(key)) {
             // First time entering departing state
@@ -101,10 +101,10 @@ export function useTrainSchedule({
     return () => clearInterval(interval);
   }, [updateTrains]);
 
-  // Compute service context (route-aware, based on actual trains available)
+  // Compute service context (route-aware, determines if there's same-day service)
   const serviceContext = useMemo(
-    () => getServiceContext(scheduleData, route, trainsByDirection.length > 0),
-    [scheduleData, route, trainsByDirection.length]
+    () => getServiceContext(scheduleData, route),
+    [scheduleData, route]
   );
 
   return { trainsByDirection, serviceContext };
