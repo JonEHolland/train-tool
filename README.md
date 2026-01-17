@@ -50,11 +50,13 @@ As a Progressive Web App, Sounder Train Schedule works even without an internet 
 
 ### Install on Your Phone
 
-Add the app to your home screen for instant access:
+The app will prompt you to install when you visit on a supported browser:
 
-**iOS:** Tap the Share button in Safari, then "Add to Home Screen"
+- **Chrome/Edge:** A banner appears with an "Install" button for one-tap installation
+- **Safari (iOS):** A banner guides you to tap Share → "Add to Home Screen"
+- **Safari (macOS):** A banner guides you to File → "Add to Dock"
 
-**Android:** Tap the menu button in Chrome, then "Add to Home screen" or "Install app"
+Once installed, the app launches instantly from your home screen with no browser UI.
 
 ## For Developers
 
@@ -122,6 +124,7 @@ src/
 │   └── WeekendNotice.tsx
 ├── hooks/               # Custom React hooks
 │   ├── useAlerts.ts     # Alert fetching
+│   ├── useInstallPrompt.ts  # PWA install prompt
 │   └── useLocalStorage.ts
 ├── utils/
 │   ├── time.ts          # Time formatting

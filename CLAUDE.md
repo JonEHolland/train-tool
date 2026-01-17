@@ -19,6 +19,7 @@ npm run fetch-data   # Update GTFS schedule data
 | URGENCY_THRESHOLDS.COMFORTABLE | 15 min | Yellow - comfortable |
 | UPDATE_INTERVAL_MS | 10,000 | Countdown refresh rate |
 | DEPARTING_DURATION_MS | 30,000 | How long to show "Departing" |
+| INSTALL_DISMISS_DURATION_MS | 7 days | Hide install banner after dismiss |
 
 ### File Locations
 | Purpose | Location |
@@ -33,6 +34,7 @@ npm run fetch-data   # Update GTFS schedule data
 | Direction arrows | `src/utils/trainDirection.ts` |
 | Alert parsing | `src/utils/parseTrainAlerts.ts` |
 | Departing state hook | `src/hooks/useTrainSchedule.ts` |
+| Install prompt hook | `src/hooks/useInstallPrompt.ts` |
 | Test fixtures | `tests/fixtures/` |
 | E2E tests | `e2e/` |
 | Visual snapshots | `e2e/visual.spec.ts-snapshots/` |
@@ -125,14 +127,16 @@ Not all suggested improvements are worth implementing. Skip or simplify when:
 
 ### Test Coverage Expectations
 Current test counts (update these when adding significant test suites):
-- **Unit tests:** ~472 tests
-- **E2E tests:** ~38 tests
+- **Unit tests:** ~505 tests
+- **E2E tests:** ~46 tests
 
 When adding new utilities, aim for comprehensive test coverage:
 - `src/utils/schedule.ts` → 38 tests
 - `src/utils/trainDirection.ts` → 18 tests
 - `src/hooks/useTrainSchedule.ts` → 13 tests
+- `src/hooks/useInstallPrompt.ts` → 20 tests
 - `src/components/SpecialServiceBanner.test.tsx` → 17 tests
+- `src/components/InstallBanner.test.tsx` → 13 tests
 
 ---
 
@@ -142,6 +146,7 @@ When adding new utilities, aim for comprehensive test coverage:
 ```
 App.tsx (root shell)
 ├── UpdateBanner (PWA updates)
+├── InstallBanner (PWA install prompt)
 └── HomePage (main train schedule)
     ├── RouteSelect (N-Line / S-Line toggle)
     ├── StopSelect (station dropdown)
@@ -585,6 +590,93 @@ if (itemCount === 1) {
 
 ---
 
+## Testing Patterns & Learnings
+
+### localStorage Mocking in Unit Tests
+
+The test environment doesn't provide a real `localStorage`. Tests that use localStorage must define their own mock:
+
+```typescript
+// At the top of test file, before any imports that use localStorage
+let store: Record<string, string> = {};
+const localStorageMock = {
+  getItem: (key: string) => store[key] ?? null,
+  setItem: (key: string, value: string) => { store[key] = value; },
+  removeItem: (key: string) => { delete store[key]; },
+  clear: () => { store = {}; },
+  get length() { return Object.keys(store).length; },
+  key: (index: number) => Object.keys(store)[index] ?? null,
+};
+
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
+// In beforeEach, reset the store
+beforeEach(() => {
+  store = {};
+});
+```
+
+See `src/App.test.tsx` and `src/hooks/useInstallPrompt.test.ts` for examples.
+
+### Platform Detection & User Agent Testing
+
+When testing hooks that detect platform via `navigator.userAgent`:
+
+**Unit tests**: Override `navigator.userAgent` before rendering:
+```typescript
+Object.defineProperty(navigator, 'userAgent', {
+  value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0...',
+  configurable: true
+});
+```
+
+**E2E tests**: Must create a new browser context with the user agent - cannot change it after page load:
+```typescript
+const context = await browser.newContext({
+  userAgent: 'Mozilla/5.0 (iPhone...'
+});
+const page = await context.newPage();
+await page.goto('/');
+```
+
+**Playwright MCP limitation**: The MCP browser_navigate creates a default Chromium context. To test other user agents, use `browser_run_code` to create new contexts:
+```typescript
+await (async (page) => {
+  const browser = page.context().browser();
+  const iosContext = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (iPhone...'
+  });
+  const iosPage = await iosContext.newPage();
+  // ... test code
+})(page);
+```
+
+### Cross-Platform Feature Detection Hook Pattern
+
+For features that behave differently per platform (like install prompts), use this pattern:
+
+```typescript
+// 1. Export pure detection functions for easy unit testing
+export function detectPlatform(userAgent = navigator.userAgent): Platform {
+  // Detection logic here
+}
+
+// 2. Hook initializes platform once on mount
+export function useFeature() {
+  const [platform] = useState(() => detectPlatform());
+  // ... rest of hook
+}
+
+// 3. Tests can call detection functions directly
+it('detects iOS Safari', () => {
+  expect(detectPlatform('Mozilla/5.0 (iPhone...')).toBe('safari-ios');
+});
+```
+
+This separates platform detection (pure function, easy to test) from hook lifecycle (needs renderHook).
+
+---
+
 ## Project Structure
 
 ```
@@ -606,6 +698,7 @@ src/
 │   │   └── ...          # 13 components total
 │   ├── AlertList.tsx    # Service alerts carousel (subscribes to context)
 │   ├── SpecialServiceBanner.tsx  # Exception service banner (subscribes to context)
+│   ├── InstallBanner.tsx # PWA install prompt banner
 │   ├── RouteSelect.tsx  # N/S Line toggle
 │   ├── StopSelect.tsx   # Station dropdown
 │   ├── TrainList.tsx    # Main train display
@@ -618,6 +711,7 @@ src/
 │   └── ComponentShowcase.tsx  # Dev-only UI showcase
 ├── hooks/
 │   ├── useAlerts.ts     # Fetch & parse alerts (5-min polling)
+│   ├── useInstallPrompt.ts  # PWA install prompt (cross-platform)
 │   ├── useLocalStorage.ts  # Persistent state
 │   ├── useServiceWorkerUpdate.ts  # PWA updates
 │   └── useTrainSchedule.ts  # Departing state management
@@ -639,6 +733,7 @@ tests/
 e2e/
 ├── train-schedule.spec.ts  # Schedule E2E tests
 ├── train-alerts.spec.ts    # Alert E2E tests
+├── install-banner.spec.ts  # Install banner E2E tests
 ├── visual.spec.ts          # Visual regression
 └── visual.spec.ts-snapshots/  # Baseline images
 
