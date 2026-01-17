@@ -88,7 +88,8 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
   }, [currentMinutes]);
 
   // Show appropriate empty state based on service context
-  if (serviceContext.isWeekendWithNoService) {
+  // Only show weekend message if there are no preview trains to display
+  if (serviceContext.isWeekendWithNoService && trainsByDirection.length === 0) {
     return (
       <Card>
         <CardBody>
@@ -102,7 +103,8 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
   }
 
   // No service today but not a regular weekend (e.g., holiday)
-  if (!serviceContext.hasService) {
+  // Only show if there are no preview trains to display
+  if (!serviceContext.hasService && trainsByDirection.length === 0) {
     return (
       <Card>
         <CardBody>
@@ -159,9 +161,12 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
 
     const isDeparting = firstTrain.departingAt !== undefined;
 
+    // Check if train is on a future day (has a day label like "Tomorrow", "Monday", etc.)
+    const isFutureDay = !!firstTrain.nextDayLabel;
+
     // Determine urgency for first train
     let urgencyClass = '';
-    if (!firstTrain.isTomorrow) {
+    if (!isFutureDay) {
       if (isDeparting) {
         urgencyClass = 'departing';
       } else if (firstTrain.minutesAway <= URGENCY_THRESHOLDS.DANGER) {
@@ -174,15 +179,16 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
     }
 
     // For cancelled trains, show "Cancelled" instead of countdown
+    // For future days, show the day label (e.g., "Tomorrow", "Monday")
     const isCancelledHero = firstTrain.alert?.severity === 'cancelled';
     const firstCountdown = isCancelledHero
       ? 'Cancelled'
-      : firstTrain.isTomorrow
-        ? 'Tomorrow'
+      : firstTrain.nextDayLabel
+        ? firstTrain.nextDayLabel
         : formatCountdownCompact(firstTrain.minutesAway, isDeparting);
 
-    const progress = firstTrain.isTomorrow ? 1 : calculateProgress(firstTrain.minutesAway);
-    const ringColor = firstTrain.isTomorrow
+    const progress = isFutureDay ? 1 : calculateProgress(firstTrain.minutesAway);
+    const ringColor = isFutureDay
       ? colors.accent.primary
       : getTrainRingColor(firstTrain, isDeparting);
 
@@ -191,7 +197,7 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
     // Build countdown class with animation state and alert styling
     const countdownClasses = [
       'train-hero-countdown',
-      firstTrain.isTomorrow ? 'tomorrow' : '',
+      isFutureDay ? 'tomorrow' : '',
       isAnimating && !isDeparting ? 'minute-changed' : '',
       firstTrain.alert ? `train-hero-countdown--${firstTrain.alert.severity}` : ''
     ].filter(Boolean).join(' ');
@@ -242,11 +248,13 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
               {otherTrains.map((train, index) => {
                 const trainIsDeparting = train.departingAt !== undefined;
                 const isCancelled = train.alert?.severity === 'cancelled';
+                // Get the day label (lowercase for secondary trains)
+                const trainFutureDayLabel = train.nextDayLabel?.toLowerCase();
                 // Show "Cancelled" instead of countdown for cancelled trains
                 const countdown = isCancelled
                   ? 'Cancelled'
-                  : train.isTomorrow
-                    ? 'tomorrow'
+                  : trainFutureDayLabel
+                    ? trainFutureDayLabel
                     : formatCountdown(train.minutesAway, trainIsDeparting);
 
                 return (

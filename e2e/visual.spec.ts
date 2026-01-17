@@ -55,13 +55,14 @@ test.describe('Visual Regression', () => {
     });
   });
 
-  test('Weekend no service view', async ({ page }) => {
+  test('Weekend Monday preview view', async ({ page }) => {
+    // On weekends, we now show Monday preview trains instead of "No trains on weekends"
     await page.addInitScript(getPlaywrightDateMockScript(SATURDAY_AFTERNOON));
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
-    await expect(page).toHaveScreenshot('weekend-no-service.png', {
+    await expect(page).toHaveScreenshot('weekend-monday-preview.png', {
       maxDiffPixels: 100,
     });
   });

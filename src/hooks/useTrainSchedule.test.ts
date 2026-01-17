@@ -220,7 +220,7 @@ describe('useTrainSchedule', () => {
     expect(result.current.trainsByDirection).toBeDefined();
   });
 
-  it('returns empty on weekend (no service)', () => {
+  it('returns Monday preview trains on weekend (no same-day service)', () => {
     vi.setSystemTime(TEST_TIMES.SATURDAY_AFTERNOON);
 
     const { result } = renderHook(() =>
@@ -232,7 +232,13 @@ describe('useTrainSchedule', () => {
       })
     );
 
-    expect(result.current.trainsByDirection).toEqual([]);
+    // Should return Monday preview trains since there's no weekend service
+    expect(result.current.trainsByDirection.length).toBeGreaterThan(0);
+    for (const direction of result.current.trainsByDirection) {
+      for (const train of direction.trains) {
+        expect(train.nextDayLabel).toBe('Monday');
+      }
+    }
   });
 
   describe('serviceContext', () => {
@@ -253,7 +259,7 @@ describe('useTrainSchedule', () => {
       expect(result.current.serviceContext.isWeekendWithNoService).toBe(false);
     });
 
-    it('returns serviceContext with isWeekendWithNoService true on weekend', () => {
+    it('returns serviceContext with isWeekendWithNoService true on weekend (but still shows Monday preview)', () => {
       vi.setSystemTime(TEST_TIMES.SATURDAY_AFTERNOON);
 
       const { result } = renderHook(() =>
@@ -265,8 +271,17 @@ describe('useTrainSchedule', () => {
         })
       );
 
+      // Service context indicates no same-day service on weekend
       expect(result.current.serviceContext.hasService).toBe(false);
       expect(result.current.serviceContext.isWeekendWithNoService).toBe(true);
+
+      // But we still get Monday preview trains
+      expect(result.current.trainsByDirection.length).toBeGreaterThan(0);
+      for (const direction of result.current.trainsByDirection) {
+        for (const train of direction.trains) {
+          expect(train.nextDayLabel).toBe('Monday');
+        }
+      }
     });
 
     it('returns serviceContext with exception service info when gameday active', () => {

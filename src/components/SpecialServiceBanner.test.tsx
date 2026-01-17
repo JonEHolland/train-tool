@@ -28,8 +28,7 @@ describe('SpecialServiceBanner', () => {
         destination: 'Seattle',
         time: '10:00 AM',
         minutesAway: 30,
-        isTomorrow: false,
-        isExceptionService: true,
+                isExceptionService: true,
         exceptionServiceType: type,
       }],
     }];
@@ -55,7 +54,7 @@ describe('SpecialServiceBanner', () => {
           destination: 'Seattle',
           time: '10:00 AM',
           minutesAway: 30,
-          isTomorrow: true, // Tomorrow - should not show banner
+          nextDayLabel: 'Tomorrow', // Tomorrow - should not show banner
           isExceptionService: true,
           exceptionServiceType: 'gameday',
         }],
@@ -132,8 +131,7 @@ describe('computeExceptionServiceState', () => {
         destination: 'Seattle',
         time: '10:00 AM',
         minutesAway: 30,
-        isTomorrow: false,
-        isExceptionService: true,
+                isExceptionService: true,
         exceptionServiceType: type,
       }],
     }];

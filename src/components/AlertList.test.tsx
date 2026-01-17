@@ -175,7 +175,6 @@ describe('AlertList', () => {
           destination: 'Seattle',
           time: '10:00 AM',
           minutesAway: 30,
-          isTomorrow: false,
           isExceptionService: true,
           exceptionServiceType: 'gameday',
         }],

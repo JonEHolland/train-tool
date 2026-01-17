@@ -37,7 +37,7 @@ export function computeExceptionServiceState(
   let activeExceptionType: ExceptionServiceType | null = null;
   for (const direction of trainsByDirection) {
     for (const train of direction.trains) {
-      if (!train.isTomorrow && train.isExceptionService && train.exceptionServiceType) {
+      if (!train.nextDayLabel && train.isExceptionService && train.exceptionServiceType) {
         activeExceptionType = train.exceptionServiceType;
         break;
       }

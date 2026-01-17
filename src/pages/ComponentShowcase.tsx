@@ -450,7 +450,6 @@ function createMockTrains(type: 'gameday' | 'fair' | 'reduced' | 'special'): Dir
       destination: 'Seattle',
       time: '10:00 AM',
       minutesAway: 30,
-      isTomorrow: false,
       isExceptionService: true,
       exceptionServiceType: type,
     }],
