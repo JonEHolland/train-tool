@@ -133,3 +133,6 @@ export interface AlertEntity {
 export interface AlertsResponse {
   entity?: AlertEntity[];
 }
+
+/** Platform type for install prompt detection */
+export type InstallPlatform = 'chromium' | 'safari-ios' | 'safari-macos' | 'unsupported';
