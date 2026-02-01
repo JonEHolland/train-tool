@@ -330,6 +330,7 @@ export function getTrainsByDirection(
         trainNumber: extractTrainNumber(trip.tripId),
         isExceptionService: isException || undefined,
         exceptionServiceType: exceptionType,
+        provider: trip.provider,
       });
     }
   }

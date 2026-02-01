@@ -1,3 +1,6 @@
+/** Train service provider */
+export type TrainProvider = 'sounder' | 'amtrak';
+
 export interface Stop {
   stopId: string;
   name: string;
@@ -15,6 +18,8 @@ export interface Trip {
   serviceId?: string;
   headsign?: string;
   stops: TripStop[];
+  /** Provider of this train (sounder or amtrak) */
+  provider?: TrainProvider;
 }
 
 export interface Direction {
@@ -73,7 +78,7 @@ export interface NextTrain {
   nextDayLabel?: string;
   /** Timestamp when train entered "Departing" state (Date.now() value) */
   departingAt?: number;
-  /** Train number extracted from tripId (e.g., "1700", "1820E") */
+  /** Train number extracted from tripId (e.g., "1700", "1820E", "516") */
   trainNumber?: string;
   /** Attached alert if this train has a service alert */
   alert?: TrainAlert;
@@ -81,6 +86,8 @@ export interface NextTrain {
   isExceptionService?: boolean;
   /** Type of exception service if applicable */
   exceptionServiceType?: ExceptionServiceType;
+  /** Provider of this train (sounder or amtrak) */
+  provider?: TrainProvider;
 }
 
 export interface DirectionTrains {

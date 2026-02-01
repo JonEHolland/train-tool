@@ -7,7 +7,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const GTFS_URL = 'https://gtfs.sound.obaweb.org/prod/40_gtfs.zip';
+const AMTRAK_GTFS_URL = 'https://content.amtrak.com/content/gtfs/GTFS.zip';
 const SOUNDER_ROUTES = ['SNDR_EV', 'SNDR_TL'];
+/** RailPlus trains that serve N-Line stations */
+const RAILPLUS_TRAINS = ['516', '517', '518', '519'];
+/** Map Amtrak station codes to Sounder stop IDs */
+const AMTRAK_STATION_MAP: Record<string, string> = {
+  'SEA': 'S_KS_T3',  // Seattle King Street
+  'EDM': 'S_ED',      // Edmonds
+  'EVR': 'S_EV',      // Everett
+};
 /** Sentinel value for sorting trips without departure times (sorts after all valid times) */
 const MAX_TIME_SENTINEL = '99:99:99';
 
@@ -31,11 +40,14 @@ interface TripStop {
   departure: string;
 }
 
+type TrainProvider = 'sounder' | 'amtrak';
+
 interface Trip {
   tripId: string;
   serviceId: string;
   headsign: string;
   stops: TripStop[];
+  provider?: TrainProvider;
 }
 
 interface Direction {
@@ -74,14 +86,14 @@ interface ScheduleData {
   generatedAt: string;
 }
 
-async function downloadGTFS(): Promise<ArrayBuffer> {
-  console.log('Downloading GTFS data...');
-  const response = await fetch(GTFS_URL);
+async function downloadGTFS(url: string, name: string): Promise<ArrayBuffer> {
+  console.log(`Downloading ${name} GTFS data...`);
+  const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to download GTFS: ${response.status}`);
+    throw new Error(`Failed to download ${name} GTFS: ${response.status}`);
   }
   const buffer = await response.arrayBuffer();
-  console.log('Download complete.');
+  console.log(`${name} download complete.`);
   return buffer;
 }
 
@@ -300,17 +312,263 @@ function buildScheduleData(gtfs: GTFSFiles): ScheduleData {
   };
 }
 
+/**
+ * Extract train number from Amtrak trip_short_name or trip_id.
+ * Amtrak uses numeric train numbers (e.g., "516", "517").
+ */
+function extractAmtrakTrainNumber(tripShortName: string | undefined, tripId: string): string | undefined {
+  // trip_short_name often contains the train number directly
+  if (tripShortName && /^\d{3}$/.test(tripShortName)) {
+    return tripShortName;
+  }
+  // Fallback: try to extract from trip_id
+  const match = tripId.match(/(\d{3})/);
+  return match ? match[1] : undefined;
+}
+
+/**
+ * Build schedule data for Amtrak RailPlus trains.
+ * Only includes trains 516, 517, 518, 519 and stops at SEA, EDM, EVR.
+ */
+function buildAmtrakScheduleData(gtfs: GTFSFiles): {
+  trips: Trip[];
+  calendars: Map<string, Calendar>;
+  calendarDates: Record<string, CalendarDate[]>;
+} {
+  console.log('Building Amtrak RailPlus schedule data...');
+
+  // Find Amtrak Cascades route
+  const cascadesRoute = gtfs['routes.txt'].find(r =>
+    r.route_short_name === 'Cascades' ||
+    r.route_long_name?.toLowerCase().includes('cascades')
+  );
+
+  if (!cascadesRoute) {
+    console.log('  No Amtrak Cascades route found');
+    return { trips: [], calendars: new Map(), calendarDates: {} };
+  }
+
+  console.log(`  Found Cascades route: ${cascadesRoute.route_id}`);
+
+  // Find trips for Cascades route
+  const allTrips = gtfs['trips.txt'].filter(t => t.route_id === cascadesRoute.route_id);
+  console.log(`  Found ${allTrips.length} total Cascades trips`);
+
+  // Filter to RailPlus trains only
+  const railPlusTrips = allTrips.filter(t => {
+    const trainNum = extractAmtrakTrainNumber(t.trip_short_name, t.trip_id);
+    return trainNum && RAILPLUS_TRAINS.includes(trainNum);
+  });
+  console.log(`  Found ${railPlusTrips.length} RailPlus trips (trains ${RAILPLUS_TRAINS.join(', ')})`);
+
+  if (railPlusTrips.length === 0) {
+    return { trips: [], calendars: new Map(), calendarDates: {} };
+  }
+
+  const tripIds = new Set(railPlusTrips.map(t => t.trip_id));
+  const tripMap = new Map(railPlusTrips.map(t => [t.trip_id, t]));
+
+  // Get stop times for RailPlus trips at N-Line stations only
+  const amtrakStopCodes = Object.keys(AMTRAK_STATION_MAP);
+  const railPlusStopTimes = gtfs['stop_times.txt'].filter(st =>
+    tripIds.has(st.trip_id) && amtrakStopCodes.includes(st.stop_id)
+  );
+  console.log(`  Found ${railPlusStopTimes.length} RailPlus stop times at N-Line stations`);
+
+  // Get stop info (optional, for debugging)
+  const stopNames = new Map<string, string>();
+  for (const stop of gtfs['stops.txt']) {
+    if (amtrakStopCodes.includes(stop.stop_id)) {
+      stopNames.set(stop.stop_id, stop.stop_name);
+    }
+  }
+
+  // Get service calendars for RailPlus trips
+  const serviceIds = new Set(railPlusTrips.map(t => t.service_id));
+  const serviceCalendars = new Map<string, Calendar>();
+
+  for (const cal of gtfs['calendar.txt']) {
+    if (serviceIds.has(cal.service_id)) {
+      serviceCalendars.set(cal.service_id, {
+        monday: cal.monday === '1',
+        tuesday: cal.tuesday === '1',
+        wednesday: cal.wednesday === '1',
+        thursday: cal.thursday === '1',
+        friday: cal.friday === '1',
+        saturday: cal.saturday === '1',
+        sunday: cal.sunday === '1',
+        start_date: cal.start_date,
+        end_date: cal.end_date
+      });
+    }
+  }
+
+  // Group stop times by trip
+  const tripStopTimes = new Map<string, GTFSRow[]>();
+  for (const st of railPlusStopTimes) {
+    if (!tripStopTimes.has(st.trip_id)) {
+      tripStopTimes.set(st.trip_id, []);
+    }
+    tripStopTimes.get(st.trip_id)!.push(st);
+  }
+
+  // Build trips with mapped stop IDs
+  const trips: Trip[] = [];
+  for (const [tripId, stopTimes] of tripStopTimes) {
+    // Need at least 2 stops to be useful (not terminus-only)
+    if (stopTimes.length < 2) continue;
+
+    stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+
+    const trip = tripMap.get(tripId)!;
+    const trainNumber = extractAmtrakTrainNumber(trip.trip_short_name, tripId);
+
+    trips.push({
+      tripId: `AMTRAK_${trainNumber}`,
+      serviceId: `AMTRAK_${trip.service_id}`,
+      headsign: trip.trip_headsign || '',
+      provider: 'amtrak',
+      stops: stopTimes.map(st => ({
+        stopId: AMTRAK_STATION_MAP[st.stop_id],
+        name: stopNames.get(st.stop_id) || st.stop_id,
+        arrival: st.arrival_time,
+        departure: st.departure_time
+      }))
+    });
+  }
+
+  console.log(`  Built ${trips.length} RailPlus trips with N-Line stops`);
+
+  // Get calendar dates exceptions for Amtrak services
+  const calendarDates: Record<string, CalendarDate[]> = {};
+  if (gtfs['calendar_dates.txt']) {
+    for (const cd of gtfs['calendar_dates.txt']) {
+      if (serviceIds.has(cd.service_id)) {
+        const amtrakServiceId = `AMTRAK_${cd.service_id}`;
+        if (!calendarDates[amtrakServiceId]) {
+          calendarDates[amtrakServiceId] = [];
+        }
+        calendarDates[amtrakServiceId].push({
+          date: cd.date,
+          exception_type: cd.exception_type
+        });
+      }
+    }
+  }
+
+  // Prefix Amtrak service IDs
+  const prefixedCalendars = new Map<string, Calendar>();
+  for (const [serviceId, cal] of serviceCalendars) {
+    prefixedCalendars.set(`AMTRAK_${serviceId}`, cal);
+  }
+
+  return { trips, calendars: prefixedCalendars, calendarDates };
+}
+
+/**
+ * Merge Amtrak trips into Sounder schedule data.
+ * RailPlus trains are added to N-Line directions based on their headsign.
+ */
+function mergeAmtrakTrips(
+  scheduleData: ScheduleData,
+  amtrakTrips: Trip[],
+  amtrakCalendars: Map<string, Calendar>,
+  amtrakCalendarDates: Record<string, CalendarDate[]>
+): void {
+  if (amtrakTrips.length === 0) {
+    console.log('No Amtrak trips to merge');
+    return;
+  }
+
+  console.log('\nMerging Amtrak trips into N-Line...');
+
+  // Add Amtrak calendars
+  for (const [serviceId, cal] of amtrakCalendars) {
+    scheduleData.calendars![serviceId] = cal;
+  }
+
+  // Add Amtrak calendar dates
+  for (const [serviceId, dates] of Object.entries(amtrakCalendarDates)) {
+    scheduleData.calendarDates![serviceId] = dates;
+  }
+
+  // Add trips to appropriate N-Line direction based on headsign
+  const nLine = scheduleData.schedule['n-line'];
+  if (!nLine) {
+    console.log('  N-Line not found in schedule');
+    return;
+  }
+
+  let northboundCount = 0;
+  let southboundCount = 0;
+
+  for (const trip of amtrakTrips) {
+    // Determine direction based on headsign or first/last stop
+    const headsign = trip.headsign.toLowerCase();
+    const firstStopId = trip.stops[0]?.stopId;
+    const lastStopId = trip.stops[trip.stops.length - 1]?.stopId;
+
+    // Northbound: heading to Everett/Vancouver
+    // Southbound: heading to Seattle/Portland
+    const isNorthbound =
+      headsign.includes('vancouver') ||
+      headsign.includes('everett') ||
+      lastStopId === 'S_EV' ||
+      firstStopId === 'S_KS_T3';
+
+    if (isNorthbound) {
+      nLine.directions['0'].trips.push(trip);
+      northboundCount++;
+    } else {
+      nLine.directions['1'].trips.push(trip);
+      southboundCount++;
+    }
+  }
+
+  console.log(`  Added ${northboundCount} northbound Amtrak trips`);
+  console.log(`  Added ${southboundCount} southbound Amtrak trips`);
+
+  // Re-sort trips by first departure time
+  for (const dir of ['0', '1']) {
+    nLine.directions[dir].trips.sort((a, b) => {
+      const timeA = a.stops[0]?.departure || MAX_TIME_SENTINEL;
+      const timeB = b.stops[0]?.departure || MAX_TIME_SENTINEL;
+      return timeA.localeCompare(timeB);
+    });
+  }
+}
+
 async function main(): Promise<void> {
   try {
-    const buffer = await downloadGTFS();
-    const gtfs = await extractGTFS(buffer);
-    const scheduleData = buildScheduleData(gtfs);
+    // Download and process Sounder GTFS
+    const sounderBuffer = await downloadGTFS(GTFS_URL, 'Sound Transit');
+    const sounderGtfs = await extractGTFS(sounderBuffer);
+    const scheduleData = buildScheduleData(sounderGtfs);
+
+    // Download and process Amtrak GTFS
+    try {
+      const amtrakBuffer = await downloadGTFS(AMTRAK_GTFS_URL, 'Amtrak');
+      const amtrakGtfs = await extractGTFS(amtrakBuffer);
+      const amtrakData = buildAmtrakScheduleData(amtrakGtfs);
+
+      // Merge Amtrak RailPlus trains into N-Line
+      mergeAmtrakTrips(
+        scheduleData,
+        amtrakData.trips,
+        amtrakData.calendars,
+        amtrakData.calendarDates
+      );
+    } catch (amtrakError) {
+      console.warn('\nWarning: Failed to fetch Amtrak data, continuing without it:', amtrakError);
+    }
 
     console.log('\nSchedule summary:');
     for (const [key, route] of Object.entries(scheduleData.schedule)) {
       console.log(`  ${route.name}:`);
       for (const [dir, data] of Object.entries(route.directions)) {
-        console.log(`    Direction ${dir} (${data.name}): ${data.trips.length} trips`);
+        const sounderTrips = data.trips.filter(t => !t.provider || t.provider === 'sounder');
+        const amtrakTrips = data.trips.filter(t => t.provider === 'amtrak');
+        console.log(`    Direction ${dir} (${data.name}): ${sounderTrips.length} Sounder + ${amtrakTrips.length} Amtrak trips`);
       }
     }
 
