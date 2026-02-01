@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { TrainAlert, AlertSeverity } from '../../types';
 import type { AlertProviderResult, AmtrakerApiResponse, AmtrakerTrainStatus } from './types';
+import { usePolling } from './usePolling';
 
 const AMTRAKER_API = 'https://api-v3.amtraker.com/v3/trains';
 
@@ -19,18 +20,15 @@ const DELAY_THRESHOLD_MINUTES = 15;
 function classifyAmtrakSeverity(status: AmtrakerTrainStatus): AlertSeverity {
   const statusText = status.status?.toLowerCase() || '';
 
-  // Check for cancellation
   if (statusText.includes('cancel')) {
     return 'cancelled';
   }
 
-  // Check for significant delays
   const lateMinutes = status.late || 0;
   if (lateMinutes >= DELAY_THRESHOLD_MINUTES || statusText.includes('late')) {
     return 'delayed';
   }
 
-  // Default to info for on-time trains (won't show alert)
   return 'info';
 }
 
@@ -49,88 +47,73 @@ function formatAmtrakAlertMessage(severity: AlertSeverity, lateMinutes?: number)
 }
 
 /**
+ * Fetch status for a single train from Amtraker API.
+ */
+async function fetchTrainStatus(trainNum: string): Promise<TrainAlert | null> {
+  try {
+    const response = await fetch(`${AMTRAKER_API}/${trainNum}`);
+    if (!response.ok) {
+      return null; // Train might not be running today
+    }
+
+    const data: AmtrakerApiResponse = await response.json();
+    const trainStatuses = data[trainNum];
+
+    if (!trainStatuses || trainStatuses.length === 0) {
+      return null;
+    }
+
+    const status = trainStatuses[0];
+    const severity = classifyAmtrakSeverity(status);
+
+    // Only create alerts for delayed or cancelled trains
+    if (severity === 'cancelled' || severity === 'delayed') {
+      return {
+        trainNumber: trainNum,
+        severity,
+        message: formatAmtrakAlertMessage(severity, status.late),
+        delayMinutes: status.late && status.late > 0 ? status.late : undefined,
+        alertId: `amtrak-${trainNum}-${Date.now()}`,
+      };
+    }
+
+    return null;
+  } catch {
+    return null; // Individual train fetch failed
+  }
+}
+
+/**
  * Fetches real-time status for Amtrak RailPlus trains from Amtraker API.
  * Only returns alerts for delayed or cancelled trains.
  */
 export function useAmtrakAlerts(): AlertProviderResult {
-  const [trainAlerts, setTrainAlerts] = useState<Map<string, TrainAlert>>(new Map());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchAmtrakStatus = useCallback(async () => {
+  const fetchAmtrakStatus = useCallback(async (): Promise<Map<string, TrainAlert>> => {
     const alerts = new Map<string, TrainAlert>();
+    const results = await Promise.all(RAILPLUS_TRAINS.map(fetchTrainStatus));
 
-    try {
-      // Fetch status for each RailPlus train
-      const fetchPromises = RAILPLUS_TRAINS.map(async (trainNum) => {
-        try {
-          const response = await fetch(`${AMTRAKER_API}/${trainNum}`);
-          if (!response.ok) {
-            // Train might not be running today
-            return null;
-          }
-
-          const data: AmtrakerApiResponse = await response.json();
-          const trainStatuses = data[trainNum];
-
-          if (!trainStatuses || trainStatuses.length === 0) {
-            return null;
-          }
-
-          // Get the most recent/relevant status
-          const status = trainStatuses[0];
-          const severity = classifyAmtrakSeverity(status);
-
-          // Only create alerts for delayed or cancelled trains
-          if (severity === 'cancelled' || severity === 'delayed') {
-            return {
-              trainNumber: trainNum,
-              severity,
-              message: formatAmtrakAlertMessage(severity, status.late),
-              delayMinutes: status.late && status.late > 0 ? status.late : undefined,
-              alertId: `amtrak-${trainNum}-${Date.now()}`,
-            } as TrainAlert;
-          }
-
-          return null;
-        } catch {
-          // Individual train fetch failed - continue with others
-          return null;
-        }
-      });
-
-      const results = await Promise.all(fetchPromises);
-
-      // Add non-null alerts to the map
-      for (const alert of results) {
-        if (alert) {
-          alerts.set(alert.trainNumber, alert);
-        }
+    for (const alert of results) {
+      if (alert) {
+        alerts.set(alert.trainNumber, alert);
       }
-
-      setTrainAlerts(alerts);
-      setError(null);
-    } catch {
-      setError('Failed to load Amtrak status');
-    } finally {
-      setLoading(false);
     }
+
+    return alerts;
   }, []);
 
-  useEffect(() => {
-    fetchAmtrakStatus();
-    const interval = setInterval(fetchAmtrakStatus, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [fetchAmtrakStatus]);
+  const { data: trainAlerts, loading, error, refetch } = usePolling(
+    fetchAmtrakStatus,
+    new Map<string, TrainAlert>(),
+    POLL_INTERVAL_MS,
+    'Failed to load Amtrak status'
+  );
 
   // Memoize the result to prevent unnecessary re-renders
-  const result = useMemo<AlertProviderResult>(() => ({
+  return useMemo<AlertProviderResult>(() => ({
     trainAlerts,
     generalAlerts: [], // Amtrak doesn't have general alerts in this integration
     loading,
     error,
-    refetch: fetchAmtrakStatus,
-  }), [trainAlerts, loading, error, fetchAmtrakStatus]);
-
-  return result;
+    refetch,
+  }), [trainAlerts, loading, error, refetch]);
 }

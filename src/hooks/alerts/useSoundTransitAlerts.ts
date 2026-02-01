@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { AlertEntity, AlertsResponse } from '../../types';
 import { parseTrainAlerts } from '../../utils/parseTrainAlerts';
 import type { AlertProviderResult } from './types';
+import { usePolling } from './usePolling';
 
 const ALERTS_SOURCE = 'https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json';
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
@@ -10,6 +11,9 @@ const ALERTS_URL = CORS_PROXY + encodeURIComponent(ALERTS_SOURCE);
 /** Polling interval for Sound Transit alerts (5 minutes) */
 const POLL_INTERVAL_MS = 300000;
 
+/** Maximum number of alerts to display */
+const MAX_ALERTS = 5;
+
 /**
  * Fetches and parses Sound Transit service alerts.
  * Returns train-specific alerts and general service alerts.
@@ -17,40 +21,31 @@ const POLL_INTERVAL_MS = 300000;
  * @param routeId - The Sound Transit route ID to filter alerts
  */
 export function useSoundTransitAlerts(routeId: string): AlertProviderResult {
-  const [alerts, setAlerts] = useState<AlertEntity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Create a stable fetcher that filters alerts for the given route
+  const fetchAlerts = useCallback(async (): Promise<AlertEntity[]> => {
+    const response = await fetch(ALERTS_URL);
+    const data: AlertsResponse = await response.json();
 
-  const fetchAlerts = useCallback(async () => {
-    try {
-      const response = await fetch(ALERTS_URL);
-      const data: AlertsResponse = await response.json();
+    const relevantAlerts = (data.entity || []).filter(entity => {
+      const alert = entity.alert;
+      if (!alert) return false;
+      const informed = alert.informed_entity || [];
+      return informed.some(ie =>
+        ie.route_id?.includes('SNDR') ||
+        ie.route_id?.includes(routeId) ||
+        !ie.route_id
+      );
+    });
 
-      const relevantAlerts = (data.entity || []).filter(entity => {
-        const alert = entity.alert;
-        if (!alert) return false;
-        const informed = alert.informed_entity || [];
-        return informed.some(ie =>
-          ie.route_id?.includes('SNDR') ||
-          ie.route_id?.includes(routeId) ||
-          !ie.route_id
-        );
-      });
-
-      setAlerts(relevantAlerts.slice(0, 5));
-      setError(null);
-    } catch {
-      setError('Failed to load Sound Transit alerts');
-    } finally {
-      setLoading(false);
-    }
+    return relevantAlerts.slice(0, MAX_ALERTS);
   }, [routeId]);
 
-  useEffect(() => {
-    fetchAlerts();
-    const interval = setInterval(fetchAlerts, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [fetchAlerts]);
+  const { data: alerts, loading, error, refetch } = usePolling(
+    fetchAlerts,
+    [] as AlertEntity[],
+    POLL_INTERVAL_MS,
+    'Failed to load Sound Transit alerts'
+  );
 
   // Parse alerts to extract train-specific alerts (memoized)
   const parsedAlerts = useMemo(() => parseTrainAlerts(alerts), [alerts]);
@@ -60,6 +55,6 @@ export function useSoundTransitAlerts(routeId: string): AlertProviderResult {
     generalAlerts: parsedAlerts.generalAlerts,
     loading,
     error,
-    refetch: fetchAlerts,
+    refetch,
   };
 }

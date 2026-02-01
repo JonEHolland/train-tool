@@ -28,6 +28,10 @@ const EASTERN_TO_PACIFIC_HOURS = 3;
 /** Sentinel value for sorting trips without departure times (sorts after all valid times) */
 const MAX_TIME_SENTINEL = '99:99:99';
 
+// =============================================================================
+// GTFS Parsing Utilities (shared between Sounder and Amtrak)
+// =============================================================================
+
 interface GTFSRow {
   [key: string]: string;
 }
@@ -156,6 +160,107 @@ async function extractGTFS(buffer: ArrayBuffer): Promise<GTFSFiles> {
   return files;
 }
 
+/**
+ * Parse a GTFS calendar row into our Calendar interface.
+ */
+function parseCalendar(cal: GTFSRow): Calendar {
+  return {
+    monday: cal.monday === '1',
+    tuesday: cal.tuesday === '1',
+    wednesday: cal.wednesday === '1',
+    thursday: cal.thursday === '1',
+    friday: cal.friday === '1',
+    saturday: cal.saturday === '1',
+    sunday: cal.sunday === '1',
+    start_date: cal.start_date,
+    end_date: cal.end_date,
+  };
+}
+
+/**
+ * Check if a calendar represents a weekday-only service.
+ */
+function isWeekdayOnlyService(cal: GTFSRow): boolean {
+  return (
+    cal.monday === '1' && cal.tuesday === '1' && cal.wednesday === '1' &&
+    cal.thursday === '1' && cal.friday === '1'
+  );
+}
+
+/**
+ * Group stop times by trip ID.
+ */
+function groupStopTimesByTrip(stopTimes: GTFSRow[]): Map<string, GTFSRow[]> {
+  const grouped = new Map<string, GTFSRow[]>();
+  for (const st of stopTimes) {
+    if (!grouped.has(st.trip_id)) {
+      grouped.set(st.trip_id, []);
+    }
+    grouped.get(st.trip_id)!.push(st);
+  }
+  return grouped;
+}
+
+/**
+ * Sort stop times by sequence number (mutates array in place).
+ */
+function sortStopTimesBySequence(stopTimes: GTFSRow[]): void {
+  stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+}
+
+/**
+ * Parse calendar dates exceptions from GTFS.
+ * Optionally filter to only include specified service IDs.
+ */
+function parseCalendarDates(
+  gtfs: GTFSFiles,
+  serviceIdFilter?: Set<string>
+): Record<string, CalendarDate[]> {
+  const calendarDates: Record<string, CalendarDate[]> = {};
+
+  if (!gtfs['calendar_dates.txt']) {
+    return calendarDates;
+  }
+
+  for (const cd of gtfs['calendar_dates.txt']) {
+    // Skip if filter provided and service ID not in filter
+    if (serviceIdFilter && !serviceIdFilter.has(cd.service_id)) {
+      continue;
+    }
+
+    if (!calendarDates[cd.service_id]) {
+      calendarDates[cd.service_id] = [];
+    }
+    calendarDates[cd.service_id].push({
+      date: cd.date,
+      exception_type: cd.exception_type, // 1 = added, 2 = removed
+    });
+  }
+
+  return calendarDates;
+}
+
+/**
+ * Convert GTFS time from Eastern Time to Pacific Time.
+ * Amtrak GTFS uses Eastern Time for all stops nationwide.
+ *
+ * GTFS times can exceed 24:00:00 for trips that span midnight.
+ */
+function convertEasternToPacific(timeStr: string): string {
+  const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+  let pacificHours = hours - EASTERN_TO_PACIFIC_HOURS;
+
+  if (pacificHours < 0) {
+    pacificHours += 24;
+  }
+
+  return `${String(pacificHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// =============================================================================
+// Sounder Schedule Building
+// =============================================================================
+
 function buildScheduleData(gtfs: GTFSFiles): ScheduleData {
   console.log('Building schedule data...');
 
@@ -174,20 +279,10 @@ function buildScheduleData(gtfs: GTFSFiles): ScheduleData {
   const tripIds = new Set(sounderTrips.map(t => t.trip_id));
   const tripMap = new Map(sounderTrips.map(t => [t.trip_id, t]));
 
-  // Get service IDs and their calendars
+  // Parse all calendars
   const serviceCalendars = new Map<string, Calendar>();
   for (const cal of gtfs['calendar.txt']) {
-    serviceCalendars.set(cal.service_id, {
-      monday: cal.monday === '1',
-      tuesday: cal.tuesday === '1',
-      wednesday: cal.wednesday === '1',
-      thursday: cal.thursday === '1',
-      friday: cal.friday === '1',
-      saturday: cal.saturday === '1',
-      sunday: cal.sunday === '1',
-      start_date: cal.start_date,
-      end_date: cal.end_date
-    });
+    serviceCalendars.set(cal.service_id, parseCalendar(cal));
   }
 
   // Get stop times for Sounder trips
@@ -228,17 +323,11 @@ function buildScheduleData(gtfs: GTFSFiles): ScheduleData {
   }
 
   // Group stop times by trip
-  const tripStopTimes = new Map<string, GTFSRow[]>();
-  for (const st of sounderStopTimes) {
-    if (!tripStopTimes.has(st.trip_id)) {
-      tripStopTimes.set(st.trip_id, []);
-    }
-    tripStopTimes.get(st.trip_id)!.push(st);
-  }
+  const tripStopTimes = groupStopTimesByTrip(sounderStopTimes);
 
   // Sort stop times within each trip and build trip schedules
   for (const [tripId, stopTimes] of tripStopTimes) {
-    stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+    sortStopTimesBySequence(stopTimes);
 
     const trip = tripMap.get(tripId)!;
     const routeKey = trip.route_id.includes('SNDR_EV') ? 'n-line' : 's-line';
@@ -298,46 +387,17 @@ function buildScheduleData(gtfs: GTFSFiles): ScheduleData {
     }
   }
 
-  // Get calendar dates exceptions
-  const calendarDates: Record<string, CalendarDate[]> = {};
-  if (gtfs['calendar_dates.txt']) {
-    for (const cd of gtfs['calendar_dates.txt']) {
-      if (!calendarDates[cd.service_id]) {
-        calendarDates[cd.service_id] = [];
-      }
-      calendarDates[cd.service_id].push({
-        date: cd.date,
-        exception_type: cd.exception_type // 1 = added, 2 = removed
-      });
-    }
-  }
-
   return {
     schedule,
     calendars: Object.fromEntries(serviceCalendars),
-    calendarDates,
-    generatedAt: new Date().toISOString()
+    calendarDates: parseCalendarDates(gtfs),
+    generatedAt: new Date().toISOString(),
   };
 }
 
-/**
- * Convert GTFS time from Eastern Time to Pacific Time.
- * Amtrak GTFS uses Eastern Time for all stops nationwide.
- *
- * GTFS times can exceed 24:00:00 for trips that span midnight.
- * Example: 25:30:00 = 1:30am the next day
- */
-function convertEasternToPacific(timeStr: string): string {
-  const [hours, minutes, seconds] = timeStr.split(':').map(Number);
-  let pacificHours = hours - EASTERN_TO_PACIFIC_HOURS;
-
-  // Handle times that would go negative (shouldn't happen for our trains)
-  if (pacificHours < 0) {
-    pacificHours += 24;
-  }
-
-  return `${String(pacificHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
+// =============================================================================
+// Amtrak RailPlus Schedule Building
+// =============================================================================
 
 /**
  * Build RailPlus schedule data from Amtrak GTFS.
@@ -378,34 +438,14 @@ function buildAmtrakScheduleData(gtfs: GTFSFiles): {
   const weekdayServiceIds = new Set<string>();
 
   for (const cal of gtfs['calendar.txt']) {
-    const isWeekdayService =
-      cal.monday === '1' && cal.tuesday === '1' && cal.wednesday === '1' &&
-      cal.thursday === '1' && cal.friday === '1';
-
-    if (isWeekdayService) {
+    if (isWeekdayOnlyService(cal)) {
       weekdayServiceIds.add(cal.service_id);
-      calendars.set(cal.service_id, {
-        monday: cal.monday === '1',
-        tuesday: cal.tuesday === '1',
-        wednesday: cal.wednesday === '1',
-        thursday: cal.thursday === '1',
-        friday: cal.friday === '1',
-        saturday: cal.saturday === '1',
-        sunday: cal.sunday === '1',
-        start_date: cal.start_date,
-        end_date: cal.end_date
-      });
+      calendars.set(cal.service_id, parseCalendar(cal));
     }
   }
 
   // Group stop times by trip
-  const tripStopTimes = new Map<string, GTFSRow[]>();
-  for (const st of railPlusStopTimes) {
-    if (!tripStopTimes.has(st.trip_id)) {
-      tripStopTimes.set(st.trip_id, []);
-    }
-    tripStopTimes.get(st.trip_id)!.push(st);
-  }
+  const tripStopTimes = groupStopTimesByTrip(railPlusStopTimes);
 
   // Build trips, filtering to weekday services only
   const trips: Trip[] = [];
@@ -427,7 +467,7 @@ function buildAmtrakScheduleData(gtfs: GTFSFiles): {
     seenTrains.add(trainNumber);
 
     // Sort stops by sequence
-    stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+    sortStopTimesBySequence(stopTimes);
 
     // Must have all 3 RailPlus stops
     if (stopTimes.length !== 3) {
@@ -464,24 +504,15 @@ function buildAmtrakScheduleData(gtfs: GTFSFiles): {
 
   console.log(`  Built ${trips.length} RailPlus trips: ${trips.map(t => t.tripId.replace('AMTRAK_', '')).join(', ')}`);
 
-  // Get calendar dates exceptions
-  const calendarDates: Record<string, CalendarDate[]> = {};
-  if (gtfs['calendar_dates.txt']) {
-    for (const cd of gtfs['calendar_dates.txt']) {
-      if (calendars.has(cd.service_id)) {
-        if (!calendarDates[cd.service_id]) {
-          calendarDates[cd.service_id] = [];
-        }
-        calendarDates[cd.service_id].push({
-          date: cd.date,
-          exception_type: cd.exception_type
-        });
-      }
-    }
-  }
+  // Get calendar dates exceptions (only for our weekday services)
+  const calendarDates = parseCalendarDates(gtfs, new Set(calendars.keys()));
 
   return { trips, calendars, calendarDates };
 }
+
+// =============================================================================
+// Schedule Merging
+// =============================================================================
 
 /**
  * Merge Amtrak trips into Sounder schedule data.
