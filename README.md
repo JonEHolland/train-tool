@@ -29,6 +29,14 @@ Choose between the **N Line** (Everett - Seattle) and **S Line** (Seattle - Taco
 
 When multiple destinations are available, tabs let you quickly switch between them (e.g., Tacoma vs. Lakewood on the S Line).
 
+### Amtrak RailPlus Integration
+
+The N Line includes **Amtrak Cascades RailPlus trains** (516, 517, 518, 519) that serve Seattle, Edmonds, and Everett. These trains are part of the Sound Transit RailPlus program, allowing ORCA fare payment for travel between these stations.
+
+Amtrak trains are clearly marked with an "Amtrak" badge and appear mixed with Sounder trains, sorted by departure time. Real-time delay information is fetched from Amtrak's tracking system.
+
+![Amtrak RailPlus train](docs/screenshots/amtrak-badge.png)
+
 ### Smart Service Alerts
 
 Service alerts from Sound Transit are intelligently parsed and displayed in two ways:
@@ -123,7 +131,10 @@ src/
 │   ├── TrainList.tsx    # Main train display
 │   └── WeekendNotice.tsx
 ├── hooks/               # Custom React hooks
-│   ├── useAlerts.ts     # Alert fetching
+│   ├── alerts/          # Alert system
+│   │   ├── useAmtrakAlerts.ts      # Amtrak real-time status
+│   │   ├── useSoundTransitAlerts.ts # Sound Transit alerts
+│   │   └── useUnifiedAlerts.ts     # Combined alert provider
 │   ├── useInstallPrompt.ts  # PWA install prompt
 │   └── useLocalStorage.ts
 ├── utils/
@@ -144,9 +155,11 @@ public/
 
 ### Data Sources
 
-Schedule data comes from Sound Transit's official GTFS feed:
-- **Schedule:** `https://gtfs.sound.obaweb.org/prod/40_gtfs.zip`
-- **Service Alerts:** `https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json`
+Schedule data comes from official GTFS feeds:
+- **Sounder Schedule:** `https://gtfs.sound.obaweb.org/prod/40_gtfs.zip`
+- **Amtrak RailPlus Schedule:** `https://content.amtrak.com/content/gtfs/GTFS.zip`
+- **Sound Transit Alerts:** `https://s3.amazonaws.com/st-service-alerts-prod/alerts_pb.json`
+- **Amtrak Real-Time Status:** `https://api-v3.amtraker.com/v3/trains` (via [Amtraker](https://amtraker.com))
 
 To update schedule data:
 
@@ -175,7 +188,7 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## Disclaimer
 
-SounderTrain is a free, independent service and is not affiliated with, endorsed by, or connected to Sound Transit in any way. Schedule data is sourced from publicly available GTFS feeds and may not reflect real-time conditions. Use official Sound Transit resources for authoritative schedule information.
+SounderTrain is a free, independent service and is not affiliated with, endorsed by, or connected to Sound Transit or Amtrak in any way. Schedule data is sourced from publicly available GTFS feeds and may not reflect real-time conditions. Use official Sound Transit and Amtrak resources for authoritative schedule information.
 
 ## License
 
