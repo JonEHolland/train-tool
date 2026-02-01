@@ -383,20 +383,34 @@ function buildAmtrakScheduleData(gtfs: GTFSFiles): {
     }
   }
 
-  // Get service calendars for RailPlus trips
+  // Get service calendars for RailPlus trips - WEEKDAY ONLY
+  // RailPlus is only available Monday-Friday
   const serviceIds = new Set(railPlusTrips.map(t => t.service_id));
   const serviceCalendars = new Map<string, Calendar>();
+  const weekdayServiceIds = new Set<string>();
 
   for (const cal of gtfs['calendar.txt']) {
     if (serviceIds.has(cal.service_id)) {
+      // Only include weekday services (RailPlus doesn't run on weekends)
+      const isWeekdayService = cal.monday === '1' || cal.tuesday === '1' ||
+        cal.wednesday === '1' || cal.thursday === '1' || cal.friday === '1';
+      const isWeekendOnly = cal.saturday === '1' || cal.sunday === '1';
+
+      // Skip weekend-only services
+      if (!isWeekdayService && isWeekendOnly) {
+        console.log(`  Skipping weekend-only service: ${cal.service_id}`);
+        continue;
+      }
+
+      weekdayServiceIds.add(cal.service_id);
       serviceCalendars.set(cal.service_id, {
         monday: cal.monday === '1',
         tuesday: cal.tuesday === '1',
         wednesday: cal.wednesday === '1',
         thursday: cal.thursday === '1',
         friday: cal.friday === '1',
-        saturday: cal.saturday === '1',
-        sunday: cal.sunday === '1',
+        saturday: false, // Force weekday-only for RailPlus
+        sunday: false,
         start_date: cal.start_date,
         end_date: cal.end_date
       });
@@ -418,15 +432,35 @@ function buildAmtrakScheduleData(gtfs: GTFSFiles): {
     // Need at least 2 stops to be useful (not terminus-only)
     if (stopTimes.length < 2) continue;
 
+    const trip = tripMap.get(tripId)!;
+
+    // Skip trips that don't have weekday service
+    if (!weekdayServiceIds.has(trip.service_id)) {
+      continue;
+    }
+
     stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
 
-    const trip = tripMap.get(tripId)!;
     const trainNumber = extractAmtrakTrainNumber(trip.trip_short_name, tripId);
+
+    // Determine direction based on stop order within the RailPlus corridor
+    // Northbound: SEA -> EDM -> EVR (first stop is SEA)
+    // Southbound: EVR -> EDM -> SEA (first stop is EVR)
+    const firstStopId = stopTimes[0].stop_id;
+    const lastStopId = stopTimes[stopTimes.length - 1].stop_id;
+
+    // Set headsign to the RailPlus corridor terminus (not Vancouver/Portland)
+    let headsign: string;
+    if (firstStopId === 'SEA' || lastStopId === 'EVR') {
+      headsign = 'Everett Station'; // Northbound
+    } else {
+      headsign = 'King Street Station'; // Southbound
+    }
 
     trips.push({
       tripId: `AMTRAK_${trainNumber}`,
       serviceId: `AMTRAK_${trip.service_id}`,
-      headsign: trip.trip_headsign || '',
+      headsign,
       provider: 'amtrak',
       stops: stopTimes.map(st => ({
         stopId: AMTRAK_STATION_MAP[st.stop_id],
@@ -439,11 +473,12 @@ function buildAmtrakScheduleData(gtfs: GTFSFiles): {
 
   console.log(`  Built ${trips.length} RailPlus trips with N-Line stops`);
 
-  // Get calendar dates exceptions for Amtrak services
+  // Get calendar dates exceptions for Amtrak services (weekday only)
   const calendarDates: Record<string, CalendarDate[]> = {};
   if (gtfs['calendar_dates.txt']) {
     for (const cd of gtfs['calendar_dates.txt']) {
-      if (serviceIds.has(cd.service_id)) {
+      // Only include exceptions for weekday services
+      if (weekdayServiceIds.has(cd.service_id)) {
         const amtrakServiceId = `AMTRAK_${cd.service_id}`;
         if (!calendarDates[amtrakServiceId]) {
           calendarDates[amtrakServiceId] = [];

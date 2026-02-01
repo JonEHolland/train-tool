@@ -10,7 +10,7 @@
             {
               "tripId": "AMTRAK_516",
               "serviceId": "AMTRAK_312760327032",
-              "headsign": "Vancouver",
+              "headsign": "Everett Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -284,7 +284,7 @@
             {
               "tripId": "AMTRAK_518",
               "serviceId": "AMTRAK_212760326035",
-              "headsign": "Vancouver",
+              "headsign": "Everett Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -310,7 +310,7 @@
             {
               "tripId": "AMTRAK_518",
               "serviceId": "AMTRAK_112760707032",
-              "headsign": "Vancouver",
+              "headsign": "Everett Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -336,7 +336,7 @@
             {
               "tripId": "AMTRAK_518",
               "serviceId": "AMTRAK_112760366069",
-              "headsign": "Vancouver",
+              "headsign": "Everett Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -708,7 +708,7 @@
             {
               "tripId": "AMTRAK_517",
               "serviceId": "AMTRAK_212760326035",
-              "headsign": "Portland",
+              "headsign": "King Street Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -734,7 +734,7 @@
             {
               "tripId": "AMTRAK_517",
               "serviceId": "AMTRAK_112760366069",
-              "headsign": "Portland",
+              "headsign": "King Street Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -760,7 +760,7 @@
             {
               "tripId": "AMTRAK_517",
               "serviceId": "AMTRAK_112760707032",
-              "headsign": "Portland",
+              "headsign": "King Street Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -786,7 +786,7 @@
             {
               "tripId": "AMTRAK_519",
               "serviceId": "AMTRAK_312760327032",
-              "headsign": "Seattle",
+              "headsign": "King Street Station",
               "provider": "amtrak",
               "stops": [
                 {
@@ -3432,8 +3432,8 @@
       "wednesday": true,
       "thursday": true,
       "friday": true,
-      "saturday": true,
-      "sunday": true,
+      "saturday": false,
+      "sunday": false,
       "start_date": "20260201",
       "end_date": "20270201"
     },
@@ -3443,8 +3443,8 @@
       "wednesday": true,
       "thursday": true,
       "friday": true,
-      "saturday": true,
-      "sunday": true,
+      "saturday": false,
+      "sunday": false,
       "start_date": "20260311",
       "end_date": "20270201"
     },
@@ -3454,8 +3454,8 @@
       "wednesday": true,
       "thursday": true,
       "friday": true,
-      "saturday": true,
-      "sunday": true,
+      "saturday": false,
+      "sunday": false,
       "start_date": "20260201",
       "end_date": "20260204"
     },
@@ -3465,8 +3465,8 @@
       "wednesday": true,
       "thursday": true,
       "friday": true,
-      "saturday": true,
-      "sunday": true,
+      "saturday": false,
+      "sunday": false,
       "start_date": "20260205",
       "end_date": "20260310"
     }
@@ -3659,5 +3659,5 @@
       }
     ]
   },
-  "generatedAt": "2026-02-01T16:52:58.885Z"
+  "generatedAt": "2026-02-01T17:07:50.022Z"
 }

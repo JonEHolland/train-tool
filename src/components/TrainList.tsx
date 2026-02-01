@@ -274,9 +274,7 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
                       {train.trainNumber && (
                         <span className="train-secondary-number">#{train.trainNumber}</span>
                       )}
-                      {train.provider === 'amtrak' && (
-                        <span className="train-secondary-amtrak">Amtrak</span>
-                      )}
+                      {train.provider === 'amtrak' && <AmtrakBadge />}
                       {train.alert && (
                         <span
                           className={`train-alert-indicator train-alert-indicator--${train.alert.severity}`}

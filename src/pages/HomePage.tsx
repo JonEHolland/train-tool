@@ -6,7 +6,7 @@ import { AlertList } from '../components/AlertList';
 import { SpecialServiceBanner } from '../components/SpecialServiceBanner';
 import { Disclaimer } from '../components/Disclaimer';
 import { ExceptionServiceProvider } from '../context/ExceptionServiceContext';
-import { useAlerts } from '../hooks/useAlerts';
+import { useUnifiedAlerts } from '../hooks/alerts';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTrainSchedule } from '../hooks/useTrainSchedule';
 import type { ScheduleData } from '../types';
@@ -31,7 +31,7 @@ export function HomePage() {
   }, [currentRoute, setStopsMap]);
 
   const routeId = typedScheduleData.schedule[currentRoute]?.routeId || '';
-  const { trainAlerts, generalAlerts, loading: alertsLoading, error: alertsError } = useAlerts(routeId);
+  const { trainAlerts, generalAlerts, loading: alertsLoading, error: alertsError } = useUnifiedAlerts(routeId);
 
   const stops = typedScheduleData.schedule[currentRoute]?.stops || [];
 

@@ -24,7 +24,7 @@ test.describe('Amtrak RailPlus trains', () => {
 
     // Look for Amtrak badge - could be in hero or secondary list
     // depending on train ordering at this time
-    const amtrakBadge = page.locator('.train-secondary-amtrak');
+    const amtrakBadge = page.locator('.train-amtrak-badge');
     const amtrakHeroBadge = page.locator('.train-amtrak-indicator');
 
     // At least one Amtrak indicator should be visible
@@ -51,7 +51,7 @@ test.describe('Amtrak RailPlus trains', () => {
     await page.waitForTimeout(300);
 
     // There should be no Amtrak badges on S-Line
-    const amtrakBadge = page.locator('.train-secondary-amtrak');
+    const amtrakBadge = page.locator('.train-amtrak-badge');
     const amtrakHeroBadge = page.locator('.train-amtrak-indicator');
 
     await expect(amtrakBadge).toHaveCount(0);
@@ -72,21 +72,13 @@ test.describe('Amtrak RailPlus trains', () => {
 
     await page.waitForTimeout(300);
 
-    // Find an Amtrak badge (either type)
-    const amtrakBadge = page.locator('.train-secondary-amtrak').first();
-    const amtrakHeroBadge = page.locator('.amtrak-badge').first();
+    // Find an Amtrak badge (unified class)
+    const amtrakBadge = page.locator('.train-amtrak-badge').first();
 
-    const hasBadge = (await amtrakBadge.count()) > 0 || (await amtrakHeroBadge.count()) > 0;
+    const hasBadge = (await amtrakBadge.count()) > 0;
 
     if (hasBadge) {
-      // If there's a secondary badge, check its text
-      if ((await amtrakBadge.count()) > 0) {
-        await expect(amtrakBadge).toHaveText(/amtrak/i);
-      }
-      // If there's a hero badge, check its text
-      if ((await amtrakHeroBadge.count()) > 0) {
-        await expect(amtrakHeroBadge).toContainText(/amtrak/i);
-      }
+      await expect(amtrakBadge).toHaveText(/amtrak/i);
     }
   });
 });

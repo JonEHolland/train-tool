@@ -1,11 +1,9 @@
 /**
  * AmtrakBadge - Visual indicator for Amtrak RailPlus trains.
- * Displays a simple text badge with Amtrak branding colors.
+ * Displays a compact text badge. Used in both hero and secondary list.
  */
 export function AmtrakBadge() {
   return (
-    <span className="amtrak-badge">
-      <span className="amtrak-badge-text">Amtrak</span>
-    </span>
+    <span className="train-amtrak-badge">Amtrak</span>
   );
 }
