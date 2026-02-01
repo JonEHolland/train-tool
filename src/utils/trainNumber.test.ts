@@ -44,6 +44,24 @@ describe('extractTrainNumber', () => {
     });
   });
 
+  describe('AMTRAK patterns (RailPlus trains)', () => {
+    it('extracts train number from AMTRAK_516', () => {
+      expect(extractTrainNumber('AMTRAK_516')).toBe('516');
+    });
+
+    it('extracts train number from AMTRAK_517', () => {
+      expect(extractTrainNumber('AMTRAK_517')).toBe('517');
+    });
+
+    it('extracts train number from AMTRAK_518', () => {
+      expect(extractTrainNumber('AMTRAK_518')).toBe('518');
+    });
+
+    it('extracts train number from AMTRAK_519', () => {
+      expect(extractTrainNumber('AMTRAK_519')).toBe('519');
+    });
+  });
+
   describe('edge cases', () => {
     it('returns undefined for undefined input', () => {
       expect(extractTrainNumber(undefined)).toBeUndefined();

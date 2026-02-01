@@ -4,6 +4,7 @@ import { formatTime, formatCountdown, formatCountdownCompact } from '../utils/ti
 import { URGENCY_THRESHOLDS, PROGRESS_MAX_MINUTES } from '../utils/constants';
 import { getDirectionArrow } from '../utils/trainDirection';
 import { Card, CardBody, Tabs, CircularProgress, EmptyState, colors } from './ui';
+import { AmtrakBadge } from './AmtrakBadge';
 
 /**
  * App-specific helper: Calculate progress value for the circular ring.
@@ -235,6 +236,12 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
                 {firstTrain.alert.message}
               </div>
             )}
+            {/* Amtrak badge below the ring */}
+            {firstTrain.provider === 'amtrak' && (
+              <div className="train-amtrak-indicator">
+                <AmtrakBadge />
+              </div>
+            )}
           </div>
         </div>
 
@@ -267,6 +274,7 @@ export function TrainList({ trainsByDirection, serviceContext, hasStop, currentR
                       {train.trainNumber && (
                         <span className="train-secondary-number">#{train.trainNumber}</span>
                       )}
+                      {train.provider === 'amtrak' && <AmtrakBadge />}
                       {train.alert && (
                         <span
                           className={`train-alert-indicator train-alert-indicator--${train.alert.severity}`}

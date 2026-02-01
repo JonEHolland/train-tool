@@ -26,6 +26,18 @@ export const TEST_SCHEDULE_DATA: ScheduleData = {
       start_date: '20260101',
       end_date: '20261231',
     },
+    // Amtrak service runs weekdays (matching Sounder for test consistency)
+    'AMTRAK_daily-service': {
+      monday: true,
+      tuesday: true,
+      wednesday: true,
+      thursday: true,
+      friday: true,
+      saturday: false,
+      sunday: false,
+      start_date: '20260101',
+      end_date: '20261231',
+    },
   },
   calendarDates: {},
   schedule: {
@@ -76,6 +88,18 @@ export const TEST_SCHEDULE_DATA: ScheduleData = {
                 { stopId: 'everett', name: 'Everett Station', arrival: '18:10:00', departure: '18:10:00' },
               ],
             },
+            // Amtrak RailPlus northbound train (runs between Sounder trains)
+            {
+              tripId: 'AMTRAK_516',
+              serviceId: 'AMTRAK_daily-service',
+              headsign: 'Everett Station',
+              provider: 'amtrak',
+              stops: [
+                { stopId: 'king-street', name: 'Seattle', arrival: '11:30:00', departure: '11:30:00' },
+                { stopId: 'edmonds', name: 'Edmonds', arrival: '11:54:00', departure: '11:56:00' },
+                { stopId: 'everett', name: 'Everett Station', arrival: '12:18:00', departure: '12:20:00' },
+              ],
+            },
           ],
         },
         '1': {
@@ -113,6 +137,18 @@ export const TEST_SCHEDULE_DATA: ScheduleData = {
                 { stopId: 'mukilteo', name: 'Mukilteo Station', arrival: '08:15:00', departure: '08:15:00' },
                 { stopId: 'edmonds', name: 'Edmonds Station', arrival: '08:30:00', departure: '08:30:00' },
                 { stopId: 'king-street', name: 'King Street Station', arrival: '08:55:00', departure: '08:55:00' },
+              ],
+            },
+            // Amtrak RailPlus southbound train
+            {
+              tripId: 'AMTRAK_517',
+              serviceId: 'AMTRAK_daily-service',
+              headsign: 'King Street Station',
+              provider: 'amtrak',
+              stops: [
+                { stopId: 'everett', name: 'Everett Station', arrival: '09:00:00', departure: '09:00:00' },
+                { stopId: 'edmonds', name: 'Edmonds', arrival: '09:20:00', departure: '09:22:00' },
+                { stopId: 'king-street', name: 'Seattle', arrival: '09:45:00', departure: '09:45:00' },
               ],
             },
           ],

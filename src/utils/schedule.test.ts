@@ -852,4 +852,53 @@ describe('schedule utilities', () => {
       expect(gamedayTrain!.nextDayLabel).toBe('Tomorrow');
     });
   });
+
+  describe('Amtrak provider field propagation', () => {
+    it('propagates provider field from trip to NextTrain', () => {
+      // The test schedule data includes an Amtrak train (AMTRAK_516)
+      vi.setSystemTime(new Date('2026-01-06T10:00:00')); // Before 11:30 departure
+      const result = getTrainsByDirection(TEST_SCHEDULE_DATA, 'n-line', 'king-street');
+
+      // Find the Amtrak train
+      const allTrains = result.flatMap(d => d.trains);
+      const amtrakTrain = allTrains.find(t => t.trainNumber === '516');
+
+      expect(amtrakTrain).toBeDefined();
+      expect(amtrakTrain!.provider).toBe('amtrak');
+    });
+
+    it('Sounder trains have undefined provider', () => {
+      // Use morning time to catch southbound Sounder trains
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+      const result = getTrainsByDirection(TEST_SCHEDULE_DATA, 'n-line', 'edmonds');
+
+      // Find a Sounder train (not Amtrak)
+      const allTrains = result.flatMap(d => d.trains);
+      const sounderTrain = allTrains.find(t => !t.provider);
+
+      expect(sounderTrain).toBeDefined();
+      expect(sounderTrain!.provider).toBeUndefined();
+    });
+
+    it('Amtrak trains are included in N-Line schedule', () => {
+      vi.setSystemTime(new Date('2026-01-06T08:00:00')); // Morning, before Amtrak 517
+      const result = getTrainsByDirection(TEST_SCHEDULE_DATA, 'n-line', 'everett');
+
+      const allTrains = result.flatMap(d => d.trains);
+      const amtrakTrain = allTrains.find(t => t.provider === 'amtrak');
+
+      expect(amtrakTrain).toBeDefined();
+      expect(amtrakTrain!.trainNumber).toBe('517');
+    });
+
+    it('Amtrak trains are NOT in S-Line schedule', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+      const result = getTrainsByDirection(TEST_SCHEDULE_DATA, 's-line', 'king-street');
+
+      const allTrains = result.flatMap(d => d.trains);
+      const amtrakTrain = allTrains.find(t => t.provider === 'amtrak');
+
+      expect(amtrakTrain).toBeUndefined();
+    });
+  });
 });
