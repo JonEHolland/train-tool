@@ -3,9 +3,9 @@ import { getPlaywrightDateMockScript } from '../tests/fixtures/time';
 
 test.describe('Amtrak RailPlus trains', () => {
   test('shows Amtrak badge for Amtrak trains on N-Line', async ({ page }) => {
-    // Set time to late morning when Amtrak 516 (11:30 departure) is visible
+    // Set time to early morning when Amtrak 516 (8:30am departure) is visible
     // Use Feb 2026 which is within the Amtrak service calendar range
-    await page.addInitScript(getPlaywrightDateMockScript('2026-02-03T10:30:00'));
+    await page.addInitScript(getPlaywrightDateMockScript('2026-02-03T07:30:00'));
     await page.goto('/');
 
     // Wait for the page to load - should be on N-Line by default
@@ -15,7 +15,7 @@ test.describe('Amtrak RailPlus trains', () => {
     const nLineButton = page.getByRole('button', { name: /N Line/i });
     await expect(nLineButton).toHaveClass(/active/);
 
-    // Select King Street station (where Amtrak 516 departs from at 11:30)
+    // Select King Street station (where Amtrak 516 departs from at 8:30am)
     const select = page.getByRole('combobox', { name: /Your Station/i });
     await select.selectOption({ label: 'King Street Station' });
 
@@ -59,9 +59,9 @@ test.describe('Amtrak RailPlus trains', () => {
   });
 
   test('Amtrak badge styling is correct', async ({ page }) => {
-    // Set time to late morning when Amtrak 516 (11:30 departure) is visible
+    // Set time to early morning when Amtrak 516 (8:30am departure) is visible
     // Use Feb 2026 which is within the Amtrak service calendar range
-    await page.addInitScript(getPlaywrightDateMockScript('2026-02-03T10:30:00'));
+    await page.addInitScript(getPlaywrightDateMockScript('2026-02-03T07:30:00'));
     await page.goto('/');
 
     await expect(page.locator('.train-hero')).toBeVisible();

@@ -9,27 +9,27 @@
           "trips": [
             {
               "tripId": "AMTRAK_516",
-              "serviceId": "AMTRAK_312760327032",
+              "serviceId": "AMTRAK_RAILPLUS",
               "headsign": "Everett Station",
               "provider": "amtrak",
               "stops": [
                 {
                   "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "11:30:00",
-                  "departure": "11:30:00"
+                  "name": "King Street Station",
+                  "arrival": "08:30:00",
+                  "departure": "08:30:00"
                 },
                 {
                   "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "11:54:00",
-                  "departure": "11:56:00"
+                  "name": "Edmonds Station",
+                  "arrival": "08:56:00",
+                  "departure": "08:56:00"
                 },
                 {
                   "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "12:18:00",
-                  "departure": "12:21:00"
+                  "name": "Everett Station",
+                  "arrival": "09:21:00",
+                  "departure": "09:21:00"
                 }
               ]
             },
@@ -220,6 +220,32 @@
               ]
             },
             {
+              "tripId": "AMTRAK_518",
+              "serviceId": "AMTRAK_RAILPLUS",
+              "headsign": "Everett Station",
+              "provider": "amtrak",
+              "stops": [
+                {
+                  "stopId": "S_KS_T3",
+                  "name": "King Street Station",
+                  "arrival": "18:00:00",
+                  "departure": "18:00:00"
+                },
+                {
+                  "stopId": "S_ED",
+                  "name": "Edmonds Station",
+                  "arrival": "18:26:00",
+                  "departure": "18:26:00"
+                },
+                {
+                  "stopId": "S_EV",
+                  "name": "Everett Station",
+                  "arrival": "18:51:00",
+                  "departure": "18:51:00"
+                }
+              ]
+            },
+            {
               "tripId": "1820E-WSF1200",
               "serviceId": "SOUNDER_WSF_1200",
               "headsign": "Everett",
@@ -278,84 +304,6 @@
                   "name": "Everett Station",
                   "arrival": "20:44:00",
                   "departure": "20:44:00"
-                }
-              ]
-            },
-            {
-              "tripId": "AMTRAK_518",
-              "serviceId": "AMTRAK_212760326035",
-              "headsign": "Everett Station",
-              "provider": "amtrak",
-              "stops": [
-                {
-                  "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "20:37:00",
-                  "departure": "21:00:00"
-                },
-                {
-                  "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "21:24:00",
-                  "departure": "21:26:00"
-                },
-                {
-                  "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "21:48:00",
-                  "departure": "21:51:00"
-                }
-              ]
-            },
-            {
-              "tripId": "AMTRAK_518",
-              "serviceId": "AMTRAK_112760707032",
-              "headsign": "Everett Station",
-              "provider": "amtrak",
-              "stops": [
-                {
-                  "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "20:37:00",
-                  "departure": "21:00:00"
-                },
-                {
-                  "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "21:24:00",
-                  "departure": "21:26:00"
-                },
-                {
-                  "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "21:48:00",
-                  "departure": "21:51:00"
-                }
-              ]
-            },
-            {
-              "tripId": "AMTRAK_518",
-              "serviceId": "AMTRAK_112760366069",
-              "headsign": "Everett Station",
-              "provider": "amtrak",
-              "stops": [
-                {
-                  "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "20:52:00",
-                  "departure": "21:15:00"
-                },
-                {
-                  "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "21:39:00",
-                  "departure": "21:41:00"
-                },
-                {
-                  "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "22:03:00",
-                  "departure": "22:06:00"
                 }
               ]
             }
@@ -644,6 +592,32 @@
               ]
             },
             {
+              "tripId": "AMTRAK_517",
+              "serviceId": "AMTRAK_RAILPLUS",
+              "headsign": "King Street Station",
+              "provider": "amtrak",
+              "stops": [
+                {
+                  "stopId": "S_EV",
+                  "name": "Everett Station",
+                  "arrival": "10:37:00",
+                  "departure": "10:37:00"
+                },
+                {
+                  "stopId": "S_ED",
+                  "name": "Edmonds Station",
+                  "arrival": "11:00:00",
+                  "departure": "11:00:00"
+                },
+                {
+                  "stopId": "S_KS_T3",
+                  "name": "King Street Station",
+                  "arrival": "11:40:00",
+                  "departure": "11:40:00"
+                }
+              ]
+            },
+            {
               "tripId": "1811-Gameday1310",
               "serviceId": "SOUNDER_GAMEDAY_1310",
               "headsign": "Seattle",
@@ -706,106 +680,28 @@
               ]
             },
             {
-              "tripId": "AMTRAK_517",
-              "serviceId": "AMTRAK_212760326035",
-              "headsign": "King Street Station",
-              "provider": "amtrak",
-              "stops": [
-                {
-                  "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "13:34:00",
-                  "departure": "13:37:00"
-                },
-                {
-                  "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "13:58:00",
-                  "departure": "14:00:00"
-                },
-                {
-                  "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "14:40:00",
-                  "departure": "15:10:00"
-                }
-              ]
-            },
-            {
-              "tripId": "AMTRAK_517",
-              "serviceId": "AMTRAK_112760366069",
-              "headsign": "King Street Station",
-              "provider": "amtrak",
-              "stops": [
-                {
-                  "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "13:34:00",
-                  "departure": "13:37:00"
-                },
-                {
-                  "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "13:58:00",
-                  "departure": "14:00:00"
-                },
-                {
-                  "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "14:40:00",
-                  "departure": "15:10:00"
-                }
-              ]
-            },
-            {
-              "tripId": "AMTRAK_517",
-              "serviceId": "AMTRAK_112760707032",
-              "headsign": "King Street Station",
-              "provider": "amtrak",
-              "stops": [
-                {
-                  "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "13:34:00",
-                  "departure": "13:37:00"
-                },
-                {
-                  "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "13:58:00",
-                  "departure": "14:00:00"
-                },
-                {
-                  "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "14:40:00",
-                  "departure": "15:10:00"
-                }
-              ]
-            },
-            {
               "tripId": "AMTRAK_519",
-              "serviceId": "AMTRAK_312760327032",
+              "serviceId": "AMTRAK_RAILPLUS",
               "headsign": "King Street Station",
               "provider": "amtrak",
               "stops": [
                 {
                   "stopId": "S_EV",
-                  "name": "Everett Amtrak Station",
-                  "arrival": "23:04:00",
-                  "departure": "23:07:00"
+                  "name": "Everett Station",
+                  "arrival": "20:07:00",
+                  "departure": "20:07:00"
                 },
                 {
                   "stopId": "S_ED",
-                  "name": "Edmonds",
-                  "arrival": "23:28:00",
-                  "departure": "23:30:00"
+                  "name": "Edmonds Station",
+                  "arrival": "20:30:00",
+                  "departure": "20:30:00"
                 },
                 {
                   "stopId": "S_KS_T3",
-                  "name": "Seattle",
-                  "arrival": "24:10:00",
-                  "departure": "24:10:00"
+                  "name": "King Street Station",
+                  "arrival": "21:10:00",
+                  "departure": "21:10:00"
                 }
               ]
             }
@@ -3426,7 +3322,7 @@
       "start_date": "20260126",
       "end_date": "20260327"
     },
-    "AMTRAK_312760327032": {
+    "AMTRAK_RAILPLUS": {
       "monday": true,
       "tuesday": true,
       "wednesday": true,
@@ -3434,41 +3330,8 @@
       "friday": true,
       "saturday": false,
       "sunday": false,
-      "start_date": "20260201",
-      "end_date": "20270201"
-    },
-    "AMTRAK_112760707032": {
-      "monday": true,
-      "tuesday": true,
-      "wednesday": true,
-      "thursday": true,
-      "friday": true,
-      "saturday": false,
-      "sunday": false,
-      "start_date": "20260311",
-      "end_date": "20270201"
-    },
-    "AMTRAK_212760326035": {
-      "monday": true,
-      "tuesday": true,
-      "wednesday": true,
-      "thursday": true,
-      "friday": true,
-      "saturday": false,
-      "sunday": false,
-      "start_date": "20260201",
-      "end_date": "20260204"
-    },
-    "AMTRAK_112760366069": {
-      "monday": true,
-      "tuesday": true,
-      "wednesday": true,
-      "thursday": true,
-      "friday": true,
-      "saturday": false,
-      "sunday": false,
-      "start_date": "20260205",
-      "end_date": "20260310"
+      "start_date": "20240101",
+      "end_date": "20301231"
     }
   },
   "calendarDates": {
@@ -3659,5 +3522,5 @@
       }
     ]
   },
-  "generatedAt": "2026-02-01T17:07:50.022Z"
+  "generatedAt": "2026-02-01T17:13:50.359Z"
 }

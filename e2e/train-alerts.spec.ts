@@ -4,6 +4,9 @@ import { getPlaywrightDateMockScript, TEST_TIME_STRINGS } from '../tests/fixture
 // Destructure test times for cleaner usage
 const { WEEKDAY_MORNING } = TEST_TIME_STRINGS;
 
+// Time when train 1700 is the hero (departs 4:05pm from King Street)
+const WEEKDAY_AFTERNOON = '2026-01-06T16:00:00';
+
 // Mock alert responses for testing
 const MOCK_ALERT_RESPONSE_GENERAL = {
   entity: [
@@ -102,6 +105,9 @@ test.describe('Train Alerts', () => {
     });
 
     test('train-specific delayed alert shows inline and in SERVICE ALERTS', async ({ page }) => {
+      // Use afternoon time when train 1700 is the hero
+      await page.addInitScript(getPlaywrightDateMockScript(WEEKDAY_AFTERNOON));
+
       await page.route(ALERT_ROUTE_PATTERN, route => {
         route.fulfill({
           status: 200,
@@ -123,6 +129,9 @@ test.describe('Train Alerts', () => {
     });
 
     test('train-specific cancelled alert shows "Cancelled" in hero', async ({ page }) => {
+      // Use afternoon time when train 1700 is the hero
+      await page.addInitScript(getPlaywrightDateMockScript(WEEKDAY_AFTERNOON));
+
       await page.route(ALERT_ROUTE_PATTERN, route => {
         route.fulfill({
           status: 200,
