@@ -7,7 +7,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const GTFS_URL = 'https://gtfs.sound.obaweb.org/prod/40_gtfs.zip';
+const AMTRAK_GTFS_URL = 'https://content.amtrak.com/content/gtfs/GTFS.zip';
 const SOUNDER_ROUTES = ['SNDR_EV', 'SNDR_TL'];
+/** RailPlus trains that serve N-Line stations */
+const RAILPLUS_TRAINS = ['516', '517', '518', '519'];
+/** Map Amtrak station codes to Sounder stop IDs */
+const AMTRAK_STATION_MAP: Record<string, string> = {
+  'SEA': 'S_KS_T3',  // Seattle King Street
+  'EDM': 'S_ED',     // Edmonds
+  'EVR': 'S_EV',     // Everett
+};
+/** Amtrak station names for display */
+const AMTRAK_STATION_NAMES: Record<string, string> = {
+  'SEA': 'King Street Station',
+  'EDM': 'Edmonds Station',
+  'EVR': 'Everett Station',
+};
+/** Hours to subtract to convert Eastern Time to Pacific Time */
+const EASTERN_TO_PACIFIC_HOURS = 3;
 /** Sentinel value for sorting trips without departure times (sorts after all valid times) */
 const MAX_TIME_SENTINEL = '99:99:99';
 
@@ -304,101 +321,166 @@ function buildScheduleData(gtfs: GTFSFiles): ScheduleData {
 }
 
 /**
- * Build hardcoded RailPlus schedule data.
+ * Convert GTFS time from Eastern Time to Pacific Time.
+ * Amtrak GTFS uses Eastern Time for all stops nationwide.
  *
- * RailPlus is a special Sound Transit/Amtrak agreement with fixed trains.
- * The Amtrak GTFS doesn't accurately represent RailPlus times, so we
- * hardcode the official schedule from soundtransit.org.
- *
- * Official RailPlus Schedule (weekdays only):
- *
- * To Everett (Northbound):
- *   516: Seattle 8:30am → Edmonds 8:56am → Everett 9:21am
- *   518: Seattle 6:00pm → Edmonds 6:26pm → Everett 6:51pm
- *
- * To Seattle (Southbound):
- *   517: Everett 10:37am → Edmonds 11:00am → Seattle 11:40am
- *   519: Everett 8:07pm → Edmonds 8:30pm → Seattle 9:10pm
+ * GTFS times can exceed 24:00:00 for trips that span midnight.
+ * Example: 25:30:00 = 1:30am the next day
  */
-function buildRailPlusScheduleData(): {
+function convertEasternToPacific(timeStr: string): string {
+  const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+  let pacificHours = hours - EASTERN_TO_PACIFIC_HOURS;
+
+  // Handle times that would go negative (shouldn't happen for our trains)
+  if (pacificHours < 0) {
+    pacificHours += 24;
+  }
+
+  return `${String(pacificHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+/**
+ * Build RailPlus schedule data from Amtrak GTFS.
+ *
+ * RailPlus is a Sound Transit/Amtrak agreement allowing ORCA fare payment
+ * on specific Amtrak Cascades trains (516, 517, 518, 519) between
+ * Seattle, Edmonds, and Everett.
+ *
+ * Important: Amtrak GTFS uses Eastern Time for all stops. We convert
+ * to Pacific Time for Seattle-area stations.
+ */
+function buildAmtrakScheduleData(gtfs: GTFSFiles): {
   trips: Trip[];
   calendars: Map<string, Calendar>;
   calendarDates: Record<string, CalendarDate[]>;
 } {
-  console.log('Building RailPlus schedule data (hardcoded)...');
+  console.log('Building RailPlus schedule data from Amtrak GTFS...');
 
-  // RailPlus runs weekdays only, year-round
-  const railPlusCalendar: Calendar = {
-    monday: true,
-    tuesday: true,
-    wednesday: true,
-    thursday: true,
-    friday: true,
-    saturday: false,
-    sunday: false,
-    start_date: '20240101',
-    end_date: '20301231',
-  };
+  // Find RailPlus trips (trains 516, 517, 518, 519)
+  const railPlusTrips = gtfs['trips.txt'].filter(t =>
+    RAILPLUS_TRAINS.includes(t.trip_short_name)
+  );
+  console.log(`  Found ${railPlusTrips.length} RailPlus trip variants`);
 
+  // Get trip IDs and build trip map
+  const tripIds = new Set(railPlusTrips.map(t => t.trip_id));
+  const tripMap = new Map(railPlusTrips.map(t => [t.trip_id, t]));
+
+  // Get stop times for RailPlus trips, filtered to RailPlus stations only
+  const railPlusStopIds = new Set(Object.keys(AMTRAK_STATION_MAP));
+  const railPlusStopTimes = gtfs['stop_times.txt'].filter(st =>
+    tripIds.has(st.trip_id) && railPlusStopIds.has(st.stop_id)
+  );
+  console.log(`  Found ${railPlusStopTimes.length} RailPlus stop times at SEA/EDM/EVR`);
+
+  // Get calendars - filter to weekday-only services for RailPlus
   const calendars = new Map<string, Calendar>();
-  calendars.set('AMTRAK_RAILPLUS', railPlusCalendar);
+  const weekdayServiceIds = new Set<string>();
 
-  // Northbound trips (To Everett)
-  const northboundTrips: Trip[] = [
-    {
-      tripId: 'AMTRAK_516',
-      serviceId: 'AMTRAK_RAILPLUS',
-      headsign: 'Everett Station',
-      provider: 'amtrak',
-      stops: [
-        { stopId: 'S_KS_T3', name: 'King Street Station', arrival: '08:30:00', departure: '08:30:00' },
-        { stopId: 'S_ED', name: 'Edmonds Station', arrival: '08:56:00', departure: '08:56:00' },
-        { stopId: 'S_EV', name: 'Everett Station', arrival: '09:21:00', departure: '09:21:00' },
-      ],
-    },
-    {
-      tripId: 'AMTRAK_518',
-      serviceId: 'AMTRAK_RAILPLUS',
-      headsign: 'Everett Station',
-      provider: 'amtrak',
-      stops: [
-        { stopId: 'S_KS_T3', name: 'King Street Station', arrival: '18:00:00', departure: '18:00:00' },
-        { stopId: 'S_ED', name: 'Edmonds Station', arrival: '18:26:00', departure: '18:26:00' },
-        { stopId: 'S_EV', name: 'Everett Station', arrival: '18:51:00', departure: '18:51:00' },
-      ],
-    },
-  ];
+  for (const cal of gtfs['calendar.txt']) {
+    const isWeekdayService =
+      cal.monday === '1' && cal.tuesday === '1' && cal.wednesday === '1' &&
+      cal.thursday === '1' && cal.friday === '1';
 
-  // Southbound trips (To Seattle)
-  const southboundTrips: Trip[] = [
-    {
-      tripId: 'AMTRAK_517',
-      serviceId: 'AMTRAK_RAILPLUS',
-      headsign: 'King Street Station',
-      provider: 'amtrak',
-      stops: [
-        { stopId: 'S_EV', name: 'Everett Station', arrival: '10:37:00', departure: '10:37:00' },
-        { stopId: 'S_ED', name: 'Edmonds Station', arrival: '11:00:00', departure: '11:00:00' },
-        { stopId: 'S_KS_T3', name: 'King Street Station', arrival: '11:40:00', departure: '11:40:00' },
-      ],
-    },
-    {
-      tripId: 'AMTRAK_519',
-      serviceId: 'AMTRAK_RAILPLUS',
-      headsign: 'King Street Station',
-      provider: 'amtrak',
-      stops: [
-        { stopId: 'S_EV', name: 'Everett Station', arrival: '20:07:00', departure: '20:07:00' },
-        { stopId: 'S_ED', name: 'Edmonds Station', arrival: '20:30:00', departure: '20:30:00' },
-        { stopId: 'S_KS_T3', name: 'King Street Station', arrival: '21:10:00', departure: '21:10:00' },
-      ],
-    },
-  ];
+    if (isWeekdayService) {
+      weekdayServiceIds.add(cal.service_id);
+      calendars.set(cal.service_id, {
+        monday: cal.monday === '1',
+        tuesday: cal.tuesday === '1',
+        wednesday: cal.wednesday === '1',
+        thursday: cal.thursday === '1',
+        friday: cal.friday === '1',
+        saturday: cal.saturday === '1',
+        sunday: cal.sunday === '1',
+        start_date: cal.start_date,
+        end_date: cal.end_date
+      });
+    }
+  }
 
-  const trips = [...northboundTrips, ...southboundTrips];
-  console.log(`  Built ${trips.length} RailPlus trips`);
+  // Group stop times by trip
+  const tripStopTimes = new Map<string, GTFSRow[]>();
+  for (const st of railPlusStopTimes) {
+    if (!tripStopTimes.has(st.trip_id)) {
+      tripStopTimes.set(st.trip_id, []);
+    }
+    tripStopTimes.get(st.trip_id)!.push(st);
+  }
 
-  return { trips, calendars, calendarDates: {} };
+  // Build trips, filtering to weekday services only
+  const trips: Trip[] = [];
+  const seenTrains = new Set<string>();
+
+  for (const [tripId, stopTimes] of tripStopTimes) {
+    const tripInfo = tripMap.get(tripId)!;
+
+    // Only include weekday services
+    if (!weekdayServiceIds.has(tripInfo.service_id)) {
+      continue;
+    }
+
+    // Only include one trip per train number (avoid duplicates from multiple service calendars)
+    const trainNumber = tripInfo.trip_short_name;
+    if (seenTrains.has(trainNumber)) {
+      continue;
+    }
+    seenTrains.add(trainNumber);
+
+    // Sort stops by sequence
+    stopTimes.sort((a, b) => parseInt(a.stop_sequence) - parseInt(b.stop_sequence));
+
+    // Must have all 3 RailPlus stops
+    if (stopTimes.length !== 3) {
+      console.log(`  Warning: Train ${trainNumber} has ${stopTimes.length} stops instead of 3, skipping`);
+      continue;
+    }
+
+    // Determine direction based on stop order
+    const firstStop = stopTimes[0].stop_id;
+    const lastStop = stopTimes[stopTimes.length - 1].stop_id;
+    const isNorthbound = firstStop === 'SEA' && lastStop === 'EVR';
+
+    // Set headsign based on terminus
+    const headsign = isNorthbound ? 'Everett Station' : 'King Street Station';
+
+    const trip: Trip = {
+      tripId: `AMTRAK_${trainNumber}`,
+      serviceId: tripInfo.service_id,
+      headsign,
+      provider: 'amtrak',
+      stops: stopTimes.map(st => ({
+        stopId: AMTRAK_STATION_MAP[st.stop_id],
+        name: AMTRAK_STATION_NAMES[st.stop_id],
+        arrival: convertEasternToPacific(st.arrival_time),
+        departure: convertEasternToPacific(st.departure_time),
+      })),
+    };
+
+    trips.push(trip);
+  }
+
+  // Sort trips by train number for consistent output
+  trips.sort((a, b) => a.tripId.localeCompare(b.tripId));
+
+  console.log(`  Built ${trips.length} RailPlus trips: ${trips.map(t => t.tripId.replace('AMTRAK_', '')).join(', ')}`);
+
+  // Get calendar dates exceptions
+  const calendarDates: Record<string, CalendarDate[]> = {};
+  if (gtfs['calendar_dates.txt']) {
+    for (const cd of gtfs['calendar_dates.txt']) {
+      if (calendars.has(cd.service_id)) {
+        if (!calendarDates[cd.service_id]) {
+          calendarDates[cd.service_id] = [];
+        }
+        calendarDates[cd.service_id].push({
+          date: cd.date,
+          exception_type: cd.exception_type
+        });
+      }
+    }
+  }
+
+  return { trips, calendars, calendarDates };
 }
 
 /**
@@ -481,18 +563,22 @@ async function main(): Promise<void> {
     const sounderGtfs = await extractGTFS(sounderBuffer);
     const scheduleData = buildScheduleData(sounderGtfs);
 
-    // Build hardcoded RailPlus schedule
-    // Note: We use hardcoded times because Amtrak GTFS doesn't accurately
-    // represent RailPlus-specific times. Official schedule from soundtransit.org.
-    const railPlusData = buildRailPlusScheduleData();
+    // Download and process Amtrak GTFS for RailPlus trains
+    try {
+      const amtrakBuffer = await downloadGTFS(AMTRAK_GTFS_URL, 'Amtrak');
+      const amtrakGtfs = await extractGTFS(amtrakBuffer);
+      const amtrakData = buildAmtrakScheduleData(amtrakGtfs);
 
-    // Merge RailPlus trains into N-Line
-    mergeAmtrakTrips(
-      scheduleData,
-      railPlusData.trips,
-      railPlusData.calendars,
-      railPlusData.calendarDates
-    );
+      // Merge RailPlus trains into N-Line
+      mergeAmtrakTrips(
+        scheduleData,
+        amtrakData.trips,
+        amtrakData.calendars,
+        amtrakData.calendarDates
+      );
+    } catch (amtrakError) {
+      console.warn('\nWarning: Failed to fetch Amtrak data, continuing without RailPlus trains:', amtrakError);
+    }
 
     console.log('\nSchedule summary:');
     for (const [key, route] of Object.entries(scheduleData.schedule)) {

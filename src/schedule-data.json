@@ -9,7 +9,7 @@
           "trips": [
             {
               "tripId": "AMTRAK_516",
-              "serviceId": "AMTRAK_RAILPLUS",
+              "serviceId": "312760327032",
               "headsign": "Everett Station",
               "provider": "amtrak",
               "stops": [
@@ -22,13 +22,13 @@
                 {
                   "stopId": "S_ED",
                   "name": "Edmonds Station",
-                  "arrival": "08:56:00",
+                  "arrival": "08:54:00",
                   "departure": "08:56:00"
                 },
                 {
                   "stopId": "S_EV",
                   "name": "Everett Station",
-                  "arrival": "09:21:00",
+                  "arrival": "09:18:00",
                   "departure": "09:21:00"
                 }
               ]
@@ -221,26 +221,26 @@
             },
             {
               "tripId": "AMTRAK_518",
-              "serviceId": "AMTRAK_RAILPLUS",
+              "serviceId": "212760326035",
               "headsign": "Everett Station",
               "provider": "amtrak",
               "stops": [
                 {
                   "stopId": "S_KS_T3",
                   "name": "King Street Station",
-                  "arrival": "18:00:00",
+                  "arrival": "17:37:00",
                   "departure": "18:00:00"
                 },
                 {
                   "stopId": "S_ED",
                   "name": "Edmonds Station",
-                  "arrival": "18:26:00",
+                  "arrival": "18:24:00",
                   "departure": "18:26:00"
                 },
                 {
                   "stopId": "S_EV",
                   "name": "Everett Station",
-                  "arrival": "18:51:00",
+                  "arrival": "18:48:00",
                   "departure": "18:51:00"
                 }
               ]
@@ -593,27 +593,27 @@
             },
             {
               "tripId": "AMTRAK_517",
-              "serviceId": "AMTRAK_RAILPLUS",
+              "serviceId": "212760326035",
               "headsign": "King Street Station",
               "provider": "amtrak",
               "stops": [
                 {
                   "stopId": "S_EV",
                   "name": "Everett Station",
-                  "arrival": "10:37:00",
+                  "arrival": "10:34:00",
                   "departure": "10:37:00"
                 },
                 {
                   "stopId": "S_ED",
                   "name": "Edmonds Station",
-                  "arrival": "11:00:00",
+                  "arrival": "10:58:00",
                   "departure": "11:00:00"
                 },
                 {
                   "stopId": "S_KS_T3",
                   "name": "King Street Station",
                   "arrival": "11:40:00",
-                  "departure": "11:40:00"
+                  "departure": "12:10:00"
                 }
               ]
             },
@@ -681,20 +681,20 @@
             },
             {
               "tripId": "AMTRAK_519",
-              "serviceId": "AMTRAK_RAILPLUS",
+              "serviceId": "312760327032",
               "headsign": "King Street Station",
               "provider": "amtrak",
               "stops": [
                 {
                   "stopId": "S_EV",
                   "name": "Everett Station",
-                  "arrival": "20:07:00",
+                  "arrival": "20:04:00",
                   "departure": "20:07:00"
                 },
                 {
                   "stopId": "S_ED",
                   "name": "Edmonds Station",
-                  "arrival": "20:30:00",
+                  "arrival": "20:28:00",
                   "departure": "20:30:00"
                 },
                 {
@@ -3322,7 +3322,7 @@
       "start_date": "20260126",
       "end_date": "20260327"
     },
-    "AMTRAK_RAILPLUS": {
+    "306260327032": {
       "monday": true,
       "tuesday": true,
       "wednesday": true,
@@ -3330,8 +3330,1064 @@
       "friday": true,
       "saturday": false,
       "sunday": false,
-      "start_date": "20240101",
-      "end_date": "20301231"
+      "start_date": "20260201",
+      "end_date": "20270201"
+    },
+    "312760327032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20270201"
+    },
+    "112760747032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260315",
+      "end_date": "20270201"
+    },
+    "212760326073": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260314"
+    },
+    "212760326066": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260307"
+    },
+    "112760687032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260309",
+      "end_date": "20270201"
+    },
+    "112760707032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260311",
+      "end_date": "20270201"
+    },
+    "212760326068": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260309"
+    },
+    "106260487032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260217",
+      "end_date": "20270201"
+    },
+    "206260326044": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260201",
+      "end_date": "20260213"
+    },
+    "112760697032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260310",
+      "end_date": "20270201"
+    },
+    "306360327032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": false,
+      "start_date": "20260201",
+      "end_date": "20270201"
+    },
+    "112760677032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260308",
+      "end_date": "20270201"
+    },
+    "212760326064": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260305"
+    },
+    "106262867032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20261013",
+      "end_date": "20270201"
+    },
+    "206260326135": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260201",
+      "end_date": "20260515"
+    },
+    "106261386285": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260518",
+      "end_date": "20261012"
+    },
+    "212760326065": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260306"
+    },
+    "212760326067": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260308"
+    },
+    "106261467032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260526",
+      "end_date": "20270201"
+    },
+    "206260326142": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260201",
+      "end_date": "20260522"
+    },
+    "112761467032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260526",
+      "end_date": "20270201"
+    },
+    "212760326144": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260524"
+    },
+    "112761437032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260523",
+      "end_date": "20270201"
+    },
+    "212760326141": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260521"
+    },
+    "112761187032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260428",
+      "end_date": "20270201"
+    },
+    "212760326102": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260412"
+    },
+    "206260326042": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260201",
+      "end_date": "20260211"
+    },
+    "106260476055": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260216",
+      "end_date": "20260224"
+    },
+    "106260576063": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260226",
+      "end_date": "20260304"
+    },
+    "106260996106": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260409",
+      "end_date": "20260416"
+    },
+    "106261136127": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260423",
+      "end_date": "20260507"
+    },
+    "106261316135": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260511",
+      "end_date": "20260515"
+    },
+    "106261386155": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260518",
+      "end_date": "20260604"
+    },
+    "106261636184": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260612",
+      "end_date": "20260703"
+    },
+    "106262086285": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260727",
+      "end_date": "20261012"
+    },
+    "106261527032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260601",
+      "end_date": "20270201"
+    },
+    "106260486072": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260217",
+      "end_date": "20260313"
+    },
+    "106260756149": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260316",
+      "end_date": "20260529"
+    },
+    "106260546072": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260223",
+      "end_date": "20260313"
+    },
+    "112660466074": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": true,
+      "start_date": "20260215",
+      "end_date": "20260315"
+    },
+    "106260486055": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260217",
+      "end_date": "20260224"
+    },
+    "106260576072": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260226",
+      "end_date": "20260313"
+    },
+    "106260757032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260316",
+      "end_date": "20270201"
+    },
+    "112760456074": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260214",
+      "end_date": "20260315"
+    },
+    "106260566072": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260225",
+      "end_date": "20260313"
+    },
+    "106260897032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260330",
+      "end_date": "20270201"
+    },
+    "206260326076": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260201",
+      "end_date": "20260317"
+    },
+    "106260786135": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260319",
+      "end_date": "20260515"
+    },
+    "112660987032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": true,
+      "start_date": "20260408",
+      "end_date": "20270201"
+    },
+    "112760987032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260408",
+      "end_date": "20270201"
+    },
+    "212660326097": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260407"
+    },
+    "212760326044": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260213"
+    },
+    "112760456065": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260214",
+      "end_date": "20260306"
+    },
+    "112760676074": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260308",
+      "end_date": "20260315"
+    },
+    "112760756097": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260316",
+      "end_date": "20260407"
+    },
+    "112761527032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260601",
+      "end_date": "20270201"
+    },
+    "112760756151": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260316",
+      "end_date": "20260531"
+    },
+    "106260476072": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260216",
+      "end_date": "20260313"
+    },
+    "212760326035": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260204"
+    },
+    "112760366069": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260205",
+      "end_date": "20260310"
+    },
+    "112761217032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260501",
+      "end_date": "20270201"
+    },
+    "212760326120": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260430"
+    },
+    "112761227032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260502",
+      "end_date": "20270201"
+    },
+    "106260617032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260302",
+      "end_date": "20270201"
+    },
+    "112760967032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260406",
+      "end_date": "20270201"
+    },
+    "212760326095": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260405"
+    },
+    "106260967032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260406",
+      "end_date": "20270201"
+    },
+    "106260756093": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260316",
+      "end_date": "20260403"
+    },
+    "112760676121": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260308",
+      "end_date": "20260501"
+    },
+    "112760417032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260210",
+      "end_date": "20270201"
+    },
+    "212760326038": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260207"
+    },
+    "112760427032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260211",
+      "end_date": "20270201"
+    },
+    "212760326039": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260208"
+    },
+    "112760327032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20270201"
+    },
+    "112760326141": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260521"
+    },
+    "112760326050": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260219"
+    },
+    "112760536064": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260222",
+      "end_date": "20260305"
+    },
+    "112760676097": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260308",
+      "end_date": "20260407"
+    },
+    "112760757032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260316",
+      "end_date": "20270201"
+    },
+    "212760326074": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260315"
+    },
+    "106260336044": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260202",
+      "end_date": "20260213"
+    },
+    "112760326120": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260430"
+    },
+    "112760326044": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260201",
+      "end_date": "20260213"
+    },
+    "112760456067": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260214",
+      "end_date": "20260308"
+    },
+    "112760686074": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260309",
+      "end_date": "20260315"
+    },
+    "106260486056": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260217",
+      "end_date": "20260225"
+    },
+    "112760337032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260202",
+      "end_date": "20270201"
+    },
+    "112760407032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260209",
+      "end_date": "20270201"
+    },
+    "106260337032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260202",
+      "end_date": "20270201"
+    },
+    "112760357032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260204",
+      "end_date": "20270201"
+    },
+    "112760346074": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260203",
+      "end_date": "20260315"
+    },
+    "112760347032": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260203",
+      "end_date": "20270201"
+    },
+    "106260346044": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": false,
+      "sunday": false,
+      "start_date": "20260203",
+      "end_date": "20260213"
+    },
+    "112760336120": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260202",
+      "end_date": "20260430"
+    },
+    "112760336044": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260202",
+      "end_date": "20260213"
+    },
+    "112760986120": {
+      "monday": true,
+      "tuesday": true,
+      "wednesday": true,
+      "thursday": true,
+      "friday": true,
+      "saturday": true,
+      "sunday": true,
+      "start_date": "20260408",
+      "end_date": "20260430"
     }
   },
   "calendarDates": {
@@ -3522,5 +4578,5 @@
       }
     ]
   },
-  "generatedAt": "2026-02-01T17:13:50.359Z"
+  "generatedAt": "2026-02-01T17:23:21.944Z"
 }
