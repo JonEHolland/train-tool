@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { getPlaywrightDateMockScript } from '../tests/fixtures/time';
+import { getPlaywrightDateMockScript, TEST_TIME_STRINGS } from '../tests/fixtures/time';
+
+const { AMTRAK_MORNING, AMTRAK_EVENING } = TEST_TIME_STRINGS;
 
 test.describe('Amtrak RailPlus trains', () => {
   test('shows Amtrak badge for Amtrak trains on N-Line', async ({ page }) => {
     // Set time to early morning when Amtrak 516 (8:30am departure) is visible
-    // Use Feb 2026 which is within the Amtrak service calendar range
-    await page.addInitScript(getPlaywrightDateMockScript('2026-02-03T07:30:00'));
+    await page.addInitScript(getPlaywrightDateMockScript(AMTRAK_MORNING));
     await page.goto('/');
 
     // Wait for the page to load - should be on N-Line by default
@@ -37,8 +38,7 @@ test.describe('Amtrak RailPlus trains', () => {
 
   test('does NOT show Amtrak trains on S-Line', async ({ page }) => {
     // Set time to weekday evening when S-Line has trains
-    // Use Feb 2026 which is within the Amtrak service calendar range
-    await page.addInitScript(getPlaywrightDateMockScript('2026-02-03T17:00:00'));
+    await page.addInitScript(getPlaywrightDateMockScript(AMTRAK_EVENING));
     await page.goto('/');
 
     // Wait for page load
@@ -60,8 +60,7 @@ test.describe('Amtrak RailPlus trains', () => {
 
   test('Amtrak badge styling is correct', async ({ page }) => {
     // Set time to early morning when Amtrak 516 (8:30am departure) is visible
-    // Use Feb 2026 which is within the Amtrak service calendar range
-    await page.addInitScript(getPlaywrightDateMockScript('2026-02-03T07:30:00'));
+    await page.addInitScript(getPlaywrightDateMockScript(AMTRAK_MORNING));
     await page.goto('/');
 
     await expect(page.locator('.train-hero')).toBeVisible();

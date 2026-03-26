@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTrainSchedule } from './useTrainSchedule';
 import { TEST_SCHEDULE_DATA } from '../../tests/fixtures/schedule-data';
-import { TEST_TIMES } from '../../tests/fixtures/time';
+import { TEST_TIMES, TEST_DATES } from '../../tests/fixtures/time';
 import { UPDATE_INTERVAL_MS, DEPARTING_DURATION_MS } from '../utils/constants';
 import type { TrainAlert } from '../types';
 
@@ -292,7 +292,7 @@ describe('useTrainSchedule', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_GAMEDAY_1210_Sunday': [
-            { date: '20260111', exception_type: '1' },
+            { date: TEST_DATES.SUNDAY, exception_type: '1' },
           ],
         },
         schedule: {

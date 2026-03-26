@@ -8,7 +8,7 @@ import {
   findNextServiceDay
 } from './schedule';
 import { TEST_SCHEDULE_DATA } from '../../tests/fixtures/schedule-data';
-import { TEST_TIMES } from '../../tests/fixtures/time';
+import { TEST_TIMES, TEST_DATES } from '../../tests/fixtures/time';
 import type { ScheduleData } from '../types';
 
 describe('schedule utilities', () => {
@@ -50,7 +50,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'special-service': [
-            { date: '20260106', exception_type: '1' }, // Add service on Jan 6
+            { date: TEST_DATES.WEEKDAY, exception_type: '1' },
           ],
         },
       };
@@ -64,7 +64,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'weekday-service': [
-            { date: '20260106', exception_type: '2' }, // Remove service on Jan 6
+            { date: TEST_DATES.WEEKDAY, exception_type: '2' },
           ],
         },
       };
@@ -222,7 +222,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_GAMEDAY_1210_Sunday': [
-            { date: '20260111', exception_type: '1' },
+            { date: TEST_DATES.SUNDAY, exception_type: '1' },
           ],
         },
         schedule: {
@@ -403,7 +403,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_GAMEDAY_1210_Sunday': [
-            { date: '20260111', exception_type: '1' }, // Sunday Jan 11
+            { date: TEST_DATES.SUNDAY, exception_type: '1' },
           ],
         },
         schedule: {
@@ -444,7 +444,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_WSF_1200': [
-            { date: '20260110', exception_type: '1' }, // Saturday Jan 10
+            { date: TEST_DATES.SATURDAY, exception_type: '1' },
           ],
         },
         schedule: {
@@ -484,10 +484,10 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_WSF_1200': [
-            { date: '20260111', exception_type: '1' },
+            { date: TEST_DATES.SUNDAY, exception_type: '1' },
           ],
           'SOUNDER_GAMEDAY_1310': [
-            { date: '20260111', exception_type: '1' },
+            { date: TEST_DATES.SUNDAY, exception_type: '1' },
           ],
         },
         schedule: {
@@ -534,7 +534,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SNDR_Reduced_Holiday': [
-            { date: '20260106', exception_type: '1' },
+            { date: TEST_DATES.WEEKDAY, exception_type: '1' },
           ],
         },
         schedule: {
@@ -637,7 +637,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_GAMEDAY_1210_Sunday': [
-            { date: '20260111', exception_type: '1' }, // Sunday Jan 11
+            { date: TEST_DATES.SUNDAY, exception_type: '1' },
           ],
         },
       };
@@ -655,8 +655,9 @@ describe('schedule utilities', () => {
 
     it('returns correct day name for 3+ days away', () => {
       // Tuesday - check when Thursday service runs (should be 2 days away)
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING); // Tuesday Jan 6
-      const thursday = new Date('2026-01-08T12:00:00'); // Thursday
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+      const thursday = new Date(TEST_TIMES.THURSDAY_LATE_NIGHT);
+      thursday.setHours(12, 0, 0, 0); // Thursday noon
       const result = findNextServiceDay(
         TEST_SCHEDULE_DATA,
         'weekday-service',
@@ -753,7 +754,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_GAMEDAY_SUN': [
-            { date: '20260111', exception_type: '1' }, // Sunday Jan 11
+            { date: TEST_DATES.SUNDAY, exception_type: '1' },
           ],
         },
         schedule: {
@@ -807,7 +808,7 @@ describe('schedule utilities', () => {
         ...TEST_SCHEDULE_DATA,
         calendarDates: {
           'SOUNDER_GAMEDAY_SAT': [
-            { date: '20260110', exception_type: '1' }, // Saturday Jan 10
+            { date: TEST_DATES.SATURDAY, exception_type: '1' },
           ],
         },
         schedule: {
@@ -856,7 +857,7 @@ describe('schedule utilities', () => {
   describe('Amtrak provider field propagation', () => {
     it('propagates provider field from trip to NextTrain', () => {
       // The test schedule data includes an Amtrak train (AMTRAK_516)
-      vi.setSystemTime(new Date('2026-01-06T10:00:00')); // Before 11:30 departure
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING); // Before 11:30 departure
       const result = getTrainsByDirection(TEST_SCHEDULE_DATA, 'n-line', 'king-street');
 
       // Find the Amtrak train
@@ -881,7 +882,7 @@ describe('schedule utilities', () => {
     });
 
     it('Amtrak trains are included in N-Line schedule', () => {
-      vi.setSystemTime(new Date('2026-01-06T08:00:00')); // Morning, before Amtrak 517
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING); // Morning, before Amtrak 517
       const result = getTrainsByDirection(TEST_SCHEDULE_DATA, 'n-line', 'everett');
 
       const allTrains = result.flatMap(d => d.trains);
