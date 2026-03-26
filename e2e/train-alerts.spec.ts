@@ -1,11 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { getPlaywrightDateMockScript, TEST_TIME_STRINGS } from '../tests/fixtures/time';
 
-// Destructure test times for cleaner usage
-const { WEEKDAY_MORNING } = TEST_TIME_STRINGS;
-
-// Time when train 1700 is the hero (departs 4:05pm from King Street)
-const WEEKDAY_AFTERNOON = '2026-01-06T16:00:00';
+const { WEEKDAY_MORNING, WEEKDAY_AFTERNOON } = TEST_TIME_STRINGS;
 
 // Mock alert responses for testing
 const MOCK_ALERT_RESPONSE_GENERAL = {
