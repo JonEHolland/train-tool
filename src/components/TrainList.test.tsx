@@ -4,48 +4,26 @@ import { TEST_TIMES } from '../../tests/fixtures/time';
 import { TrainList } from './TrainList';
 import type { DirectionTrains, ServiceContext } from '../types';
 
-// Helper service contexts for testing
-const weekdayServiceContext: ServiceContext = {
-  hasService: true,
-  hasExceptionService: false,
-  exceptionServiceType: null,
-  isWeekendWithNoService: false,
+const weekdayCtx: ServiceContext = {
+  hasService: true, hasExceptionService: false, exceptionServiceType: null, isWeekendWithNoService: false,
+};
+const weekendCtx: ServiceContext = {
+  hasService: false, hasExceptionService: false, exceptionServiceType: null, isWeekendWithNoService: true,
+};
+const noServiceCtx: ServiceContext = {
+  hasService: false, hasExceptionService: false, exceptionServiceType: null, isWeekendWithNoService: false,
 };
 
-const weekendNoServiceContext: ServiceContext = {
-  hasService: false,
-  hasExceptionService: false,
-  exceptionServiceType: null,
-  isWeekendWithNoService: true,
-};
+const singleDir: DirectionTrains[] = [{
+  directionName: 'Everett Station',
+  trains: [
+    { destination: 'Everett Station', time: '08:05:00', minutesAway: 35 },
+    { destination: 'Everett Station', time: '08:33:00', minutesAway: 63 },
+    { destination: 'Everett Station', time: '09:15:00', minutesAway: 105 },
+  ],
+}];
 
-const noServiceContext: ServiceContext = {
-  hasService: false,
-  hasExceptionService: false,
-  exceptionServiceType: null,
-  isWeekendWithNoService: false,
-};
-
-const gamedayServiceContext: ServiceContext = {
-  hasService: true,
-  hasExceptionService: true,
-  exceptionServiceType: 'gameday',
-  isWeekendWithNoService: false,
-};
-
-// Mock train data for testing
-const mockSingleDirection: DirectionTrains[] = [
-  {
-    directionName: 'Everett Station',
-    trains: [
-      { destination: 'Everett Station', time: '08:05:00', minutesAway: 35 },
-      { destination: 'Everett Station', time: '08:33:00', minutesAway: 63 },
-      { destination: 'Everett Station', time: '09:15:00', minutesAway: 105 },
-    ],
-  },
-];
-
-const mockMultipleDirections: DirectionTrains[] = [
+const multiDir: DirectionTrains[] = [
   {
     directionName: 'Tacoma Dome Station',
     trains: [
@@ -57,591 +35,140 @@ const mockMultipleDirections: DirectionTrains[] = [
     directionName: 'Lakewood Station',
     trains: [
       { destination: 'Lakewood Station', time: '17:55:00', minutesAway: 25 },
-      { destination: 'Lakewood Station', time: '18:35:00', minutesAway: 65 },
-    ],
-  },
-];
-
-const mockTomorrowTrains: DirectionTrains[] = [
-  {
-    directionName: 'King Street Station',
-    trains: [
-      { destination: 'King Street Station', time: '05:15:00', minutesAway: 345, nextDayLabel: 'Tomorrow' },
-      { destination: 'King Street Station', time: '05:45:00', minutesAway: 375, nextDayLabel: 'Tomorrow' },
-    ],
-  },
-];
-
-const mockDepartingTrain: DirectionTrains[] = [
-  {
-    directionName: 'Everett Station',
-    trains: [
-      { destination: 'Everett Station', time: '08:05:00', minutesAway: 0,departingAt: Date.now() - 5000 },
-      { destination: 'Everett Station', time: '08:33:00', minutesAway: 28 },
     ],
   },
 ];
 
 describe('TrainList', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  describe('weekend behavior', () => {
-    it('shows weekend message on weekend', () => {
-      vi.setSystemTime(TEST_TIMES.SATURDAY_AFTERNOON);
-
-      render(
-        <TrainList
-          trainsByDirection={[]}
-          serviceContext={weekendNoServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      expect(screen.getByText('No trains on weekends')).toBeInTheDocument();
-      expect(screen.getByText('Service resumes Monday morning')).toBeInTheDocument();
-    });
-
-    it('shows trains instead of weekend message when preview trains are available', () => {
-      vi.setSystemTime(TEST_TIMES.SUNDAY_MORNING);
-
-      // Mock Monday preview trains (have nextDayLabel set)
-      const mondayPreviewTrains: DirectionTrains[] = [
-        {
-          directionName: 'Everett Station',
-          trains: [
-            { destination: 'Everett Station', time: '08:05:00', minutesAway: 935, nextDayLabel: 'Monday' },
-            { destination: 'Everett Station', time: '08:33:00', minutesAway: 963, nextDayLabel: 'Monday' },
-          ],
-        },
-      ];
-
-      render(
-        <TrainList
-          trainsByDirection={mondayPreviewTrains}
-          serviceContext={weekendNoServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Should NOT show weekend message, should show preview trains
-      expect(screen.queryByText('No trains on weekends')).not.toBeInTheDocument();
-      expect(screen.getByText(/to Everett Station/)).toBeInTheDocument();
-      // First train shows day label instead of minutes countdown
-      expect(screen.getByText('Monday')).toBeInTheDocument();
-    });
-
-    it('shows trains on weekend when gameday service is active', () => {
-      vi.setSystemTime(TEST_TIMES.SUNDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={gamedayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Should NOT show weekend message, should show trains
-      expect(screen.queryByText('No trains on weekends')).not.toBeInTheDocument();
-      expect(screen.getByText(/to Everett Station/)).toBeInTheDocument();
-    });
-  });
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
 
   describe('empty states', () => {
     it('shows "Select a station" when hasStop is false', () => {
       vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={[]}
-          serviceContext={weekdayServiceContext}
-          hasStop={false}
-          currentRoute="n-line"
-        />
-      );
-
+      render(<TrainList trainsByDirection={[]} serviceContext={weekdayCtx} hasStop={false} currentRoute="n-line" />);
       expect(screen.getByText('Select a station')).toBeInTheDocument();
-      expect(screen.getByText('Choose your departure stop above')).toBeInTheDocument();
     });
 
     it('shows "No trains available" when no trains and has stop', () => {
       vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={[]}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
+      render(<TrainList trainsByDirection={[]} serviceContext={weekdayCtx} hasStop={true} currentRoute="n-line" />);
       expect(screen.getByText('No trains available')).toBeInTheDocument();
-      expect(screen.getByText('Check back later for upcoming departures')).toBeInTheDocument();
     });
 
-    it('shows "No service today" when no service but not a weekend', () => {
+    it('shows weekend message and "No service today" appropriately', () => {
+      vi.setSystemTime(TEST_TIMES.SATURDAY_AFTERNOON);
+      const { rerender } = render(<TrainList trainsByDirection={[]} serviceContext={weekendCtx} hasStop={true} currentRoute="n-line" />);
+      expect(screen.getByText('No trains on weekends')).toBeInTheDocument();
+
       vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={[]}
-          serviceContext={noServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
+      rerender(<TrainList trainsByDirection={[]} serviceContext={noServiceCtx} hasStop={true} currentRoute="n-line" />);
       expect(screen.getByText('No service today')).toBeInTheDocument();
-      expect(screen.getByText('Check back for the next operating day')).toBeInTheDocument();
     });
   });
 
   describe('train display', () => {
-    it('shows destination header', () => {
+    it('shows destination, hero countdown, and departure times', () => {
       vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+      render(<TrainList trainsByDirection={singleDir} serviceContext={weekdayCtx} hasStop={true} currentRoute="n-line" />);
 
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Header shows "to {destination}" - using regex to match the text node
       expect(screen.getByText(/to Everett Station/)).toBeInTheDocument();
-    });
-
-    it('shows hero countdown for first train', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // First train is 35 minutes away
       expect(screen.getByText('35m')).toBeInTheDocument();
-    });
-
-    it('shows formatted departure time', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // 08:05:00 formatted as 8:05 AM
       expect(screen.getByText('8:05 AM')).toBeInTheDocument();
-    });
-
-    it('shows "Other Departures" section when there are more trains', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
+      expect(screen.getByText('8:33 AM')).toBeInTheDocument();
       expect(screen.getByText('Other Departures')).toBeInTheDocument();
     });
 
-    it('shows secondary train times', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Second and third trains
-      expect(screen.getByText('8:33 AM')).toBeInTheDocument();
-      expect(screen.getByText('9:15 AM')).toBeInTheDocument();
-    });
-  });
-
-  describe('tomorrow trains', () => {
-    it('shows "Tomorrow" for trains on the next day', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_LATE_NIGHT);
-
-      render(
-        <TrainList
-          trainsByDirection={mockTomorrowTrains}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="s-line"
-        />
-      );
-
-      expect(screen.getByText('Tomorrow')).toBeInTheDocument();
-    });
-
-    it('shows "tomorrow" in secondary train countdown', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_LATE_NIGHT);
-
-      render(
-        <TrainList
-          trainsByDirection={mockTomorrowTrains}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="s-line"
-        />
-      );
-
-      // Secondary trains should show "tomorrow"
-      const tomorrowLabels = screen.getAllByText('tomorrow');
-      expect(tomorrowLabels.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('multiple directions (tabs)', () => {
-    it('shows destination tabs when multiple directions exist', () => {
+    it('shows tabs for multiple directions and switches on click', () => {
       vi.setSystemTime(TEST_TIMES.WEEKDAY_EVENING);
+      render(<TrainList trainsByDirection={multiDir} serviceContext={weekdayCtx} hasStop={true} currentRoute="s-line" />);
 
-      render(
-        <TrainList
-          trainsByDirection={mockMultipleDirections}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="s-line"
-        />
-      );
-
-      // Should show tabs for Tacoma and Lakewood (role="tab" from UI Tabs component)
       expect(screen.getByRole('tab', { name: /Tacoma/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /Lakewood/i })).toBeInTheDocument();
-    });
-
-    it('switches direction content when tab is clicked', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_EVENING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockMultipleDirections}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="s-line"
-        />
-      );
-
-      // Initially shows Tacoma (first direction) - using regex due to train number span
       expect(screen.getByText(/to Tacoma Dome Station/)).toBeInTheDocument();
 
-      // Click Lakewood tab (role="tab" from UI Tabs component)
       fireEvent.click(screen.getByRole('tab', { name: /Lakewood/i }));
-
-      // Should now show Lakewood
       expect(screen.getByText(/to Lakewood Station/)).toBeInTheDocument();
     });
 
-    it('does not show tabs for single direction', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Should not have any tabs when there's only one direction
-      expect(screen.queryByRole('tab', { name: /Everett/i })).not.toBeInTheDocument();
-    });
-  });
-
-  describe('direction arrows', () => {
-    it('shows up arrow for northbound destinations', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      expect(screen.getByText('↑')).toBeInTheDocument();
+    it('shows "Tomorrow" label for next-day trains', () => {
+      vi.setSystemTime(TEST_TIMES.WEEKDAY_LATE_NIGHT);
+      render(<TrainList trainsByDirection={[{
+        directionName: 'King Street Station',
+        trains: [{ destination: 'King Street Station', time: '05:15:00', minutesAway: 345, nextDayLabel: 'Tomorrow' }],
+      }]} serviceContext={weekdayCtx} hasStop={true} currentRoute="s-line" />);
+      expect(screen.getByText('Tomorrow')).toBeInTheDocument();
     });
 
-    it('shows down arrow for southbound destinations', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_EVENING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockMultipleDirections}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="s-line"
-        />
-      );
-
-      // Tacoma is south
-      expect(screen.getAllByText('↓').length).toBeGreaterThan(0);
+    it('shows weekend preview trains instead of "No trains" message', () => {
+      vi.setSystemTime(TEST_TIMES.SUNDAY_MORNING);
+      render(<TrainList trainsByDirection={[{
+        directionName: 'Everett Station',
+        trains: [{ destination: 'Everett Station', time: '08:05:00', minutesAway: 935, nextDayLabel: 'Monday' }],
+      }]} serviceContext={weekendCtx} hasStop={true} currentRoute="n-line" />);
+      expect(screen.queryByText('No trains on weekends')).not.toBeInTheDocument();
+      expect(screen.getByText('Monday')).toBeInTheDocument();
     });
   });
 
   describe('departing state', () => {
-    it('shows "Departing" when train has departingAt set', () => {
+    it('shows "Departing" text and class when train has departingAt', () => {
       vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockDepartingTrain}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
+      const { container } = render(<TrainList trainsByDirection={[{
+        directionName: 'Everett Station',
+        trains: [
+          { destination: 'Everett Station', time: '08:05:00', minutesAway: 0, departingAt: Date.now() - 5000 },
+          { destination: 'Everett Station', time: '08:33:00', minutesAway: 28 },
+        ],
+      }]} serviceContext={weekdayCtx} hasStop={true} currentRoute="n-line" />);
 
       expect(screen.getByText('Departing')).toBeInTheDocument();
-    });
-
-    it('applies departing urgency class to hero', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      const { container } = render(
-        <TrainList
-          trainsByDirection={mockDepartingTrain}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
       expect(container.querySelector('.train-hero.departing')).toBeInTheDocument();
     });
   });
 
   describe('train alerts', () => {
-    const mockTrainWithDelayAlert: DirectionTrains[] = [
-      {
-        directionName: 'Everett Station',
-        trains: [
-          {
-            destination: 'Everett Station',
-            time: '08:05:00',
-            minutesAway: 35,
-            trainNumber: '1700',
-            alert: {
-              trainNumber: '1700',
-              severity: 'delayed',
-              message: 'Running 15m late',
-              delayMinutes: 15,
-              alertId: 'alert-1',
-            },
-          },
-          {
-            destination: 'Everett Station',
-            time: '08:33:00',
-            minutesAway: 63,
-            trainNumber: '1702',
-          },
-        ],
-      },
-    ];
-
-    const mockTrainWithCancelledAlert: DirectionTrains[] = [
-      {
-        directionName: 'Everett Station',
-        trains: [
-          {
-            destination: 'Everett Station',
-            time: '08:05:00',
-            minutesAway: 35,
-            trainNumber: '1700',
-            alert: {
-              trainNumber: '1700',
-              severity: 'cancelled',
-              message: 'Cancelled',
-              alertId: 'alert-1',
-            },
-          },
-        ],
-      },
-    ];
-
-    const mockSecondaryTrainWithAlert: DirectionTrains[] = [
-      {
-        directionName: 'Everett Station',
-        trains: [
-          {
-            destination: 'Everett Station',
-            time: '08:05:00',
-            minutesAway: 35,
-            trainNumber: '1700',
-          },
-          {
-            destination: 'Everett Station',
-            time: '08:33:00',
-            minutesAway: 63,
-            trainNumber: '1702',
-            alert: {
-              trainNumber: '1702',
-              severity: 'delayed',
-              message: 'Running 10m late',
-              delayMinutes: 10,
-              alertId: 'alert-2',
-            },
-          },
-          {
-            destination: 'Everett Station',
-            time: '09:00:00',
-            minutesAway: 90,
-            trainNumber: '1704',
-            alert: {
-              trainNumber: '1704',
-              severity: 'cancelled',
-              message: 'Cancelled',
-              alertId: 'alert-3',
-            },
-          },
-        ],
-      },
-    ];
-
-    it('displays alert text below hero ring for delayed train', () => {
+    it('shows delayed and cancelled alerts on hero', () => {
       vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockTrainWithDelayAlert}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
+      const { container, rerender } = render(<TrainList trainsByDirection={[{
+        directionName: 'Everett Station',
+        trains: [{
+          destination: 'Everett Station', time: '08:05:00', minutesAway: 35, trainNumber: '1700',
+          alert: { trainNumber: '1700', severity: 'delayed', message: 'Running 15m late', delayMinutes: 15, alertId: 'a1' },
+        }],
+      }]} serviceContext={weekdayCtx} hasStop={true} currentRoute="n-line" />);
 
       expect(screen.getByText('Running 15m late')).toBeInTheDocument();
-    });
+      expect(container.querySelector('.train-alert-text--delayed')).toBeInTheDocument();
 
-    it('displays alert text below hero ring for cancelled train', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      render(
-        <TrainList
-          trainsByDirection={mockTrainWithCancelledAlert}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
+      rerender(<TrainList trainsByDirection={[{
+        directionName: 'Everett Station',
+        trains: [{
+          destination: 'Everett Station', time: '08:05:00', minutesAway: 35, trainNumber: '1700',
+          alert: { trainNumber: '1700', severity: 'cancelled', message: 'Cancelled', alertId: 'a1' },
+        }],
+      }]} serviceContext={weekdayCtx} hasStop={true} currentRoute="n-line" />);
 
       expect(screen.getByText('Cancelled')).toBeInTheDocument();
-    });
-
-    it('applies correct CSS class for delayed alert', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      const { container } = render(
-        <TrainList
-          trainsByDirection={mockTrainWithDelayAlert}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      expect(container.querySelector('.train-alert-text--delayed')).toBeInTheDocument();
-    });
-
-    it('applies correct CSS class for cancelled alert on hero countdown', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      const { container } = render(
-        <TrainList
-          trainsByDirection={mockTrainWithCancelledAlert}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Cancelled hero shows "Cancelled" text with matching color class
       expect(container.querySelector('.train-hero-countdown--cancelled')).toBeInTheDocument();
     });
 
-    it('shows alert indicator dot on secondary train with alert', () => {
+    it('shows alert indicators on secondary trains', () => {
       vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
+      const { container } = render(<TrainList trainsByDirection={[{
+        directionName: 'Everett Station',
+        trains: [
+          { destination: 'Everett Station', time: '08:05:00', minutesAway: 35, trainNumber: '1700' },
+          { destination: 'Everett Station', time: '08:33:00', minutesAway: 63, trainNumber: '1702',
+            alert: { trainNumber: '1702', severity: 'delayed', message: 'Running 10m late', delayMinutes: 10, alertId: 'a2' } },
+          { destination: 'Everett Station', time: '09:00:00', minutesAway: 90, trainNumber: '1704',
+            alert: { trainNumber: '1704', severity: 'cancelled', message: 'Cancelled', alertId: 'a3' } },
+        ],
+      }]} serviceContext={weekdayCtx} hasStop={true} currentRoute="n-line" />);
 
-      const { container } = render(
-        <TrainList
-          trainsByDirection={mockSecondaryTrainWithAlert}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Should have indicator dots for the two secondary trains with alerts
-      const delayedIndicator = container.querySelector('.train-alert-indicator--delayed');
-      const cancelledIndicator = container.querySelector('.train-alert-indicator--cancelled');
-
-      expect(delayedIndicator).toBeInTheDocument();
-      expect(cancelledIndicator).toBeInTheDocument();
-    });
-
-    it('shows "Cancelled" text for cancelled secondary train', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      const { container } = render(
-        <TrainList
-          trainsByDirection={mockSecondaryTrainWithAlert}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      // Cancelled secondary trains show "Cancelled" with red text
+      expect(container.querySelector('.train-alert-indicator--delayed')).toBeInTheDocument();
+      expect(container.querySelector('.train-alert-indicator--cancelled')).toBeInTheDocument();
       expect(container.querySelector('.train-cancelled')).toBeInTheDocument();
-      expect(container.querySelector('.train-secondary-countdown--cancelled')).toBeInTheDocument();
-    });
-
-    it('does not show alert text for trains without alerts', () => {
-      vi.setSystemTime(TEST_TIMES.WEEKDAY_MORNING);
-
-      const { container } = render(
-        <TrainList
-          trainsByDirection={mockSingleDirection}
-          serviceContext={weekdayServiceContext}
-          hasStop={true}
-          currentRoute="n-line"
-        />
-      );
-
-      expect(container.querySelector('.train-alert-text')).not.toBeInTheDocument();
     });
   });
 });

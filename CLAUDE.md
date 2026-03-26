@@ -127,16 +127,16 @@ Not all suggested improvements are worth implementing. Skip or simplify when:
 
 ### Test Coverage Expectations
 Current test counts (update these when adding significant test suites):
-- **Unit tests:** ~505 tests
-- **E2E tests:** ~46 tests
+- **Unit tests:** ~257 tests
+- **E2E tests:** ~49 tests
 
-When adding new utilities, aim for comprehensive test coverage:
-- `src/utils/schedule.ts` → 38 tests
-- `src/utils/trainDirection.ts` → 18 tests
-- `src/hooks/useTrainSchedule.ts` → 13 tests
-- `src/hooks/useInstallPrompt.ts` → 20 tests
-- `src/components/SpecialServiceBanner.test.tsx` → 17 tests
-- `src/components/InstallBanner.test.tsx` → 13 tests
+When adding new utilities, aim for focused test coverage that avoids redundancy:
+- `src/utils/schedule.ts` → 56 tests (core business logic, most comprehensive)
+- `src/utils/parseTrainAlerts.ts` → 49 tests (parameterized + integration)
+- `src/utils/time.ts` → 50 tests (parameterized input/output tables)
+- `src/components/TrainList.test.tsx` → 10 tests (key behaviors only)
+- `src/hooks/useInstallPrompt.ts` → 10 tests
+- UI primitives: 3-7 tests each (behavioral logic only, not prop forwarding)
 
 ---
 
